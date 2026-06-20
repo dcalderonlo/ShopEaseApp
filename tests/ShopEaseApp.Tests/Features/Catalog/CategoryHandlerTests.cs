@@ -74,7 +74,7 @@ public class CategoryHandlerTests
         {
             Name = "Gold Ring",
             CategoryId = category.Id,
-            ImageUrls = new List<string>()
+            ImageUrls = []
         });
         await db.SaveChangesAsync();
 

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using ShopEaseApp.Api.Infrastructure.Data.Seeding;
 
@@ -25,7 +24,7 @@ public class RoleSeederTests
 
         var roleManager = new RoleManager<IdentityRole>(
             roleStore.Object,
-            Array.Empty<IRoleValidator<IdentityRole>>(),
+            [],
             new UpperInvariantLookupNormalizer(),
             new Mock<IdentityErrorDescriber>().Object,
             new Mock<ILogger<RoleManager<IdentityRole>>>().Object);

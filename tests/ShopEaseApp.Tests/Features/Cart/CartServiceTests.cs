@@ -56,7 +56,7 @@ public class CartServiceTests
         {
             Name = "Test Product",
             CategoryId = 0,
-            ImageUrls = new List<string>()
+            ImageUrls = []
         };
         db.Products.Add(product);
         await db.SaveChangesAsync();

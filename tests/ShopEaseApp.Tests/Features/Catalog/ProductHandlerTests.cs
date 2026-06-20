@@ -34,11 +34,11 @@ public class ProductHandlerTests
         {
             Name = "Gold Earring",
             CategoryId = catId,
-            ImageUrls = new List<string> { "http://img.test/earring.jpg" },
-            Variants = new List<ProductVariant>
-            {
+            ImageUrls = ["http://img.test/earring.jpg"],
+            Variants =
+            [
                 new() { Name = "Gold", Price = 25.99m, Stock = 10 }
-            }
+            ]
         });
         await db.SaveChangesAsync();
 
@@ -75,8 +75,8 @@ public class ProductHandlerTests
         var request = new CreateProductRequest(
             "Silver Necklace", "Sterling silver chain",
             catId,
-            new[] { "http://img/necklace.jpg" },
-            new[] { new CreateVariantRequest("45cm", 49.99m, 5) });
+            ["http://img/necklace.jpg"],
+            [new CreateVariantRequest("45cm", 49.99m, 5)]);
 
         var (success, response, error) = await handler.CreateAsync(request);
 

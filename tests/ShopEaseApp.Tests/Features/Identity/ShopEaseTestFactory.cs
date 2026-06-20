@@ -1,11 +1,9 @@
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ShopEaseApp.Api.Infrastructure.Data;
-using ShopEaseApp.Api.Infrastructure.Data.Seeding;
 
 namespace ShopEaseApp.Tests.Features.Identity;
 

@@ -5,18 +5,13 @@ using ShopEaseApp.Api.Features.Identity.Register;
 
 namespace ShopEaseApp.Tests.Features.Identity;
 
-public class AuthIntegrationTests : IClassFixture<ShopEaseTestFactory>
+public class AuthIntegrationTests(ShopEaseTestFactory factory) : IClassFixture<ShopEaseTestFactory>
 {
-    private readonly ShopEaseTestFactory _factory;
+    private readonly ShopEaseTestFactory _factory = factory;
 
-    public AuthIntegrationTests(ShopEaseTestFactory factory)
-    {
-        _factory = factory;
-    }
+  // ── Scenario: Successful dual-auth login ──────────────────────────────────
 
-    // ── Scenario: Successful dual-auth login ──────────────────────────────────
-
-    [Fact]
+  [Fact]
     public async Task Register_ThenLogin_ReturnsBearerTokenAndSetsCookie()
     {
         var client = _factory.CreateAuthClient();

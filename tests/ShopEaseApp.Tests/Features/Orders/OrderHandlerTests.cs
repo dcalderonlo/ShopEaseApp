@@ -65,7 +65,7 @@ public class OrderHandlerTests
 
         var product = new Product
         {
-            Name = "Gold Earring", CategoryId = cat.Id, ImageUrls = new List<string>()
+            Name = "Gold Earring", CategoryId = cat.Id, ImageUrls = []
         };
         db.Products.Add(product);
         await db.SaveChangesAsync();
@@ -88,11 +88,11 @@ public class OrderHandlerTests
         await using var db = CreateDb();
         var (catId, productId, variantId) = await SeedCatalogAsync(db, stock: 5, price: 30m);
         var (cacheMock, store) = CreateCache();
-        SeedCart(store, "user1", new[]
-        {
+        SeedCart(store, "user1",
+        [
             new CartItem { VariantId = variantId, VariantName = "Gold",
                            ProductName = "Gold Earring", Quantity = 2, PriceSnapshot = 30m }
-        });
+        ]);
 
         var cartService = new CartService(cacheMock.Object, db);
         var handler = new OrderHandler(db, cartService);
@@ -123,11 +123,11 @@ public class OrderHandlerTests
         await using var db = CreateDb();
         var (_, _, variantId) = await SeedCatalogAsync(db, stock: 1, price: 20m);
         var (cacheMock, store) = CreateCache();
-        SeedCart(store, "user2", new[]
-        {
+        SeedCart(store, "user2",
+        [
             new CartItem { VariantId = variantId, VariantName = "Gold",
                            ProductName = "Earring", Quantity = 5, PriceSnapshot = 20m }
-        });
+        ]);
 
         var cartService = new CartService(cacheMock.Object, db);
         var handler = new OrderHandler(db, cartService);
@@ -158,13 +158,13 @@ public class OrderHandlerTests
         var (_, _, variantId2) = await SeedCatalogAsync(db, stock: 0, price: 20m); // out of stock
 
         var (cacheMock, store) = CreateCache();
-        SeedCart(store, "user3", new[]
-        {
+        SeedCart(store, "user3",
+        [
             new CartItem { VariantId = variantId1, VariantName = "A",
                            ProductName = "P1", Quantity = 1, PriceSnapshot = 15m },
             new CartItem { VariantId = variantId2, VariantName = "B",
                            ProductName = "P2", Quantity = 1, PriceSnapshot = 20m }
-        });
+        ]);
 
         var cartService = new CartService(cacheMock.Object, db);
         var handler = new OrderHandler(db, cartService);
@@ -208,11 +208,11 @@ public class OrderHandlerTests
             Status = OrderStatus.Confirmed,
             Total = 50m,
             CreatedAt = DateTime.UtcNow,
-            Items = new List<OrderItem>
-            {
+            Items =
+            [
                 new() { VariantId = 1, VariantName = "X", ProductName = "P",
                          Quantity = 2, UnitPrice = 25m }
-            }
+            ]
         };
         db.Orders.Add(order);
         await db.SaveChangesAsync();

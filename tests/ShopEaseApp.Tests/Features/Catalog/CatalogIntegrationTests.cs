@@ -8,15 +8,13 @@ using ShopEaseApp.Tests.Features.Identity;
 
 namespace ShopEaseApp.Tests.Features.Catalog;
 
-public class CatalogIntegrationTests : IClassFixture<ShopEaseTestFactory>
+public class CatalogIntegrationTests(ShopEaseTestFactory factory) : IClassFixture<ShopEaseTestFactory>
 {
-    private readonly ShopEaseTestFactory _factory;
+    private readonly ShopEaseTestFactory _factory = factory;
 
-    public CatalogIntegrationTests(ShopEaseTestFactory factory) => _factory = factory;
+  // ── Scenario: Guest browses products without authentication ───────────────
 
-    // ── Scenario: Guest browses products without authentication ───────────────
-
-    [Fact]
+  [Fact]
     public async Task GetProducts_AsGuest_ReturnsOk()
     {
         var client = _factory.CreateAuthClient();
@@ -43,8 +41,8 @@ public class CatalogIntegrationTests : IClassFixture<ShopEaseTestFactory>
 
         var response = await client.PostAsJsonAsync("/api/products",
             new CreateProductRequest("Bracelet", null, 1,
-                new[] { "img.jpg" },
-                new[] { new CreateVariantRequest("Gold", 15m, 3) }));
+                ["img.jpg"],
+                [new CreateVariantRequest("Gold", 15m, 3)]));
 
         // Customer token is rejected: 403 Forbidden (valid token, wrong role)
         // or 401 Unauthorized (token signed with test key but server uses appsettings key)
