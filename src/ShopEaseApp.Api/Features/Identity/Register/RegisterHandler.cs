@@ -1,19 +1,13 @@
 using Microsoft.AspNetCore.Identity;
-using ShopEaseApp.Api.Infrastructure.Auth;
 using ShopEaseApp.Api.Infrastructure.Data;
 
 namespace ShopEaseApp.Api.Features.Identity.Register;
 
-public class RegisterHandler
+public class RegisterHandler(UserManager<AppUser> userManager)
 {
-    private readonly UserManager<AppUser> _userManager;
+    private readonly UserManager<AppUser> _userManager = userManager;
 
-    public RegisterHandler(UserManager<AppUser> userManager)
-    {
-        _userManager = userManager;
-    }
-
-    public async Task<(bool Success, RegisterResponse? Response, IEnumerable<string> Errors)> HandleAsync(
+  public async Task<(bool Success, RegisterResponse? Response, IEnumerable<string> Errors)> HandleAsync(
         RegisterRequest request)
     {
         var user = new AppUser

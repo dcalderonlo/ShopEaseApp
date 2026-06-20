@@ -4,13 +4,11 @@ using ShopEaseApp.Api.Infrastructure.Data;
 
 namespace ShopEaseApp.Api.Features.Catalog.Products;
 
-public class ProductHandler
+public class ProductHandler(AppDbContext db)
 {
-    private readonly AppDbContext _db;
+    private readonly AppDbContext _db = db;
 
-    public ProductHandler(AppDbContext db) => _db = db;
-
-    private static ProductResponse ToResponse(Product p) => new(
+  private static ProductResponse ToResponse(Product p) => new(
         p.Id, p.Name, p.Description,
         p.CategoryId, p.Category.Name,
         p.ImageUrls,
@@ -49,12 +47,12 @@ public class ProductHandler
             Description = request.Description,
             CategoryId = request.CategoryId,
             ImageUrls = request.ImageUrls.ToList(),
-            Variants = request.Variants.Select(v => new ProductVariant
+            Variants = [.. request.Variants.Select(v => new ProductVariant
             {
                 Name = v.Name,
                 Price = v.Price,
                 Stock = v.Stock
-            }).ToList()
+            })]
         };
 
         _db.Products.Add(product);

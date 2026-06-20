@@ -4,15 +4,13 @@ using ShopEaseApp.Api.Infrastructure.Data;
 
 namespace ShopEaseApp.Api.Features.Catalog.Categories;
 
-public class CategoryHandler
+public class CategoryHandler(AppDbContext db)
 {
-    private readonly AppDbContext _db;
+    private readonly AppDbContext _db = db;
 
-    public CategoryHandler(AppDbContext db) => _db = db;
+  // ── Queries ───────────────────────────────────────────────────────────────
 
-    // ── Queries ───────────────────────────────────────────────────────────────
-
-    public async Task<IEnumerable<CategoryResponse>> GetAllAsync() =>
+  public async Task<IEnumerable<CategoryResponse>> GetAllAsync() =>
         await _db.Categories
             .AsNoTracking()
             .Select(c => new CategoryResponse(c.Id, c.Name, c.Description))
@@ -53,7 +51,7 @@ public class CategoryHandler
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (category is null) return (false, "Category not found.");
-        if (category.Products.Any()) return (false, "Cannot delete a category with assigned products.");
+        if (category.Products.Count != 0) return (false, "Cannot delete a category with assigned products.");
 
         _db.Categories.Remove(category);
         await _db.SaveChangesAsync();

@@ -5,21 +5,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ShopEaseApp.Api.Features.Cart;
 
-public class CartService
+public class CartService(IDistributedCache cache, AppDbContext db)
 {
     private static readonly TimeSpan CartTtl = TimeSpan.FromDays(7);
-    private readonly IDistributedCache _cache;
-    private readonly AppDbContext _db;
+    private readonly IDistributedCache _cache = cache;
+    private readonly AppDbContext _db = db;
 
-    public CartService(IDistributedCache cache, AppDbContext db)
-    {
-        _cache = cache;
-        _db = db;
-    }
+  // ── Key helper ────────────────────────────────────────────────────────────
 
-    // ── Key helper ────────────────────────────────────────────────────────────
-
-    private static string Key(string userId) => $"cart:{userId}";
+  private static string Key(string userId) => $"cart:{userId}";
 
     // ── Read ─────────────────────────────────────────────────────────────────
 

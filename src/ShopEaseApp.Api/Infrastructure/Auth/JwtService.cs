@@ -6,16 +6,11 @@ using ShopEaseApp.Api.Infrastructure.Data;
 
 namespace ShopEaseApp.Api.Infrastructure.Auth;
 
-public class JwtService
+public class JwtService(IConfiguration configuration)
 {
-    private readonly IConfiguration _configuration;
+    private readonly IConfiguration _configuration = configuration;
 
-    public JwtService(IConfiguration configuration)
-    {
-        _configuration = configuration;
-    }
-
-    public string GenerateToken(AppUser user, IList<string> roles)
+  public string GenerateToken(AppUser user, IList<string> roles)
     {
         var jwtSection = _configuration.GetSection("Jwt");
         var key = jwtSection["Key"] ?? throw new InvalidOperationException("JWT Key not configured.");

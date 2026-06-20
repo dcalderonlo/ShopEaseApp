@@ -4,23 +4,16 @@ using ShopEaseApp.Api.Infrastructure.Data;
 
 namespace ShopEaseApp.Api.Features.Identity.Login;
 
-public class LoginHandler
+public class LoginHandler(
+    UserManager<AppUser> userManager,
+    SignInManager<AppUser> signInManager,
+    JwtService jwtService)
 {
-    private readonly UserManager<AppUser> _userManager;
-    private readonly SignInManager<AppUser> _signInManager;
-    private readonly JwtService _jwtService;
+    private readonly UserManager<AppUser> _userManager = userManager;
+    private readonly SignInManager<AppUser> _signInManager = signInManager;
+    private readonly JwtService _jwtService = jwtService;
 
-    public LoginHandler(
-        UserManager<AppUser> userManager,
-        SignInManager<AppUser> signInManager,
-        JwtService jwtService)
-    {
-        _userManager = userManager;
-        _signInManager = signInManager;
-        _jwtService = jwtService;
-    }
-
-    public async Task<(bool Success, LoginResponse? Response)> HandleAsync(LoginRequest request)
+  public async Task<(bool Success, LoginResponse? Response)> HandleAsync(LoginRequest request)
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user is null)

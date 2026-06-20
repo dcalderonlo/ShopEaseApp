@@ -5,20 +5,14 @@ using ShopEaseApp.Api.Infrastructure.Data;
 
 namespace ShopEaseApp.Api.Features.Orders;
 
-public class OrderHandler
+public class OrderHandler(AppDbContext db, CartService cart)
 {
-    private readonly AppDbContext _db;
-    private readonly CartService _cart;
+    private readonly AppDbContext _db = db;
+    private readonly CartService _cart = cart;
 
-    public OrderHandler(AppDbContext db, CartService cart)
-    {
-        _db = db;
-        _cart = cart;
-    }
+  // ── Map helper ────────────────────────────────────────────────────────────
 
-    // ── Map helper ────────────────────────────────────────────────────────────
-
-    private static OrderResponse ToResponse(Order o) => new(
+  private static OrderResponse ToResponse(Order o) => new(
         o.Id, o.CustomerId, o.Status.ToString(), o.Total, o.CreatedAt,
         o.Items.Select(i => new OrderItemResponse(
             i.VariantId, i.VariantName, i.ProductName,
@@ -32,7 +26,7 @@ public class OrderHandler
         var cartResponse = await _cart.GetCartAsync(customerId);
         var cartItems = cartResponse.Items.ToList();
 
-        if (!cartItems.Any())
+        if (cartItems.Count == 0)
             return (false, null, "Cart is empty.");
 
         // Load all variants in one query and verify stock
@@ -70,7 +64,7 @@ public class OrderHandler
             Status = OrderStatus.Confirmed,
             CreatedAt = DateTime.UtcNow,
             Total = cartItems.Sum(i => i.PriceSnapshot * i.Quantity),
-            Items = cartItems.Select(i =>
+            Items = [.. cartItems.Select(i =>
             {
                 var variant = variants.First(v => v.Id == i.VariantId);
                 return new OrderItem
@@ -81,7 +75,7 @@ public class OrderHandler
                     Quantity = i.Quantity,
                     UnitPrice = i.PriceSnapshot
                 };
-            }).ToList()
+            })]
         };
 
         _db.Orders.Add(order);
