@@ -1,0 +1,42 @@
+project: ShopEaseApp
+context: |
+  ShopEaseApp is a modern online store built with .NET 10+ using ASP.NET Core Minimal APIs.
+  It implements a Vertical Slice (Feature Folders) architecture, Fluent EF Core with SQL Server,
+  JWT Bearer + HttpOnly cookies for authentication with ASP.NET Core Identity, Redis and In-Memory caching,
+  FluentValidation, Polly for resilience, and Serilog logging.
+strict_tdd: true
+testing:
+  runner:
+    command: "dotnet test"
+    framework: "xUnit"
+  layers:
+    unit:
+      available: true
+      tool: "xUnit"
+    integration:
+      available: true
+      tool: "xUnit"
+    e2e:
+      available: false
+      tool: null
+  coverage:
+    available: true
+    command: "dotnet test /p:CollectCoverage=true"
+  quality:
+    linter:
+      available: true
+      command: "dotnet format whitespace --verify-no-changes"
+    type_checker:
+      available: true
+      command: "dotnet build"
+    formatter:
+      available: true
+      command: "dotnet format"
+phase_rules:
+  proposal: "Write detailed proposals under openspec/changes/ documenting intent, context, and requirements."
+  spec: "Draft delta specs mapping exact scenarios and xUnit test structures."
+  design: "Perform architectural design aligning feature slices with EF Core, FluentValidation, and JWT flow."
+  tasks: "Enumerate clean work-unit tasks, separating database migrations, business logic, APIs, and tests."
+  apply: "Develop under strict TDD: write tests, implement, run tests, format code, and type-check."
+  verify: "Verify all tests pass with code coverage, linting, and type checking."
+  archive: "Consolidate changes into openspec/changes/archive/ and update the global spec files."

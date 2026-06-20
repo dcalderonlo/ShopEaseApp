@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ShopEaseApp.Api/ShopEaseApp.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ShopEaseApp.Tests/ShopEaseApp.Tests.csproj" />
+  </Folder>
+</Solution>
