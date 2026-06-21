@@ -46,7 +46,7 @@ public class ProductHandler(AppDbContext db)
             Name = request.Name,
             Description = request.Description,
             CategoryId = request.CategoryId,
-            ImageUrls = request.ImageUrls.ToList(),
+            ImageUrls = [.. request.ImageUrls],
             Variants = [.. request.Variants.Select(v => new ProductVariant
             {
                 Name = v.Name,
@@ -79,7 +79,7 @@ public class ProductHandler(AppDbContext db)
         product.Name = request.Name;
         product.Description = request.Description;
         product.CategoryId = request.CategoryId;
-        product.ImageUrls = request.ImageUrls.ToList();
+        product.ImageUrls = [.. request.ImageUrls];
 
         await _db.SaveChangesAsync();
         await _db.Entry(product).Reference(p => p.Category).LoadAsync();

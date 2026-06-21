@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShopEaseApp.Api.Domain;
 
@@ -19,11 +20,17 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .OnDelete(DeleteBehavior.Restrict);
 
         // Store image URLs as JSON array in a single column
+        var urlComparer = new ValueComparer<ICollection<string>>(
+            (c1, c2) => (c1 ?? new List<string>()).SequenceEqual(c2 ?? new List<string>()),
+            c => c.Aggregate(0, (hash, url) => HashCode.Combine(hash, url.GetHashCode())),
+            c => c.ToList());
+
         builder.Property(p => p.ImageUrls)
             .HasConversion(
                 v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
                 v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null)
                      ?? new List<string>())
-            .HasColumnType("nvarchar(max)");
+            .HasColumnType("nvarchar(max)")
+            .Metadata.SetValueComparer(urlComparer);
     }
 }
