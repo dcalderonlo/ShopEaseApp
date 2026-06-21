@@ -5,7 +5,7 @@
 
 <h1>Register</h1>
 
-<EditForm Model="@_form" OnValidSubmit="HandleRegister">
+<EditForm Model="@_form" OnValidSubmit="HandleRegister" FormName="registerForm">
     <DataAnnotationsValidator />
     <div><input @bind="_form.FirstName" placeholder="First Name" /></div>
     <div><input @bind="_form.LastName" placeholder="Last Name" /></div>

@@ -30,9 +30,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // ── Identity ─────────────────────────────────────────────────────────────────
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
     {
-        options.Password.RequireDigit = true;
-        options.Password.RequiredLength = 8;
-        options.Password.RequireUppercase = true;
+        options.Password.RequireDigit = false;
+        options.Password.RequiredLength = 6;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireLowercase = false;
         options.Password.RequireNonAlphanumeric = false;
     })
     .AddEntityFrameworkStores<AppDbContext>()
@@ -149,8 +150,11 @@ catch (Exception ex)
 // ── Middleware pipeline ───────────────────────────────────────────────────────
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
+app.UseStaticFiles();          // ← agregar esto
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseAntiforgery();
 app.UseOutputCache();
 
 // ── Register all feature endpoints ───────────────────────────────────────────

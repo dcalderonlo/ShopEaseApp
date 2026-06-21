@@ -7,7 +7,7 @@
 
 <h1>Login</h1>
 
-<EditForm Model="@_form" OnValidSubmit="HandleLogin">
+<EditForm Model="@_form" OnValidSubmit="HandleLogin" FormName="loginForm">
     <DataAnnotationsValidator />
     <div><input @bind="_form.Email" placeholder="Email" /></div>
     <div><input type="password" @bind="_form.Password" placeholder="Password" /></div>
