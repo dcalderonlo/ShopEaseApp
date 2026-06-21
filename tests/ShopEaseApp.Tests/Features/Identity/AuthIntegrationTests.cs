@@ -1,7 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
+using Microsoft.Extensions.DependencyInjection;
 using ShopEaseApp.Api.Features.Identity.Login;
 using ShopEaseApp.Api.Features.Identity.Register;
+using ShopEaseApp.Api.Infrastructure.Data;
 
 namespace ShopEaseApp.Tests.Features.Identity;
 
@@ -80,5 +82,52 @@ public class AuthIntegrationTests(ShopEaseTestFactory factory) : IClassFixture<S
             adminResponse.StatusCode == HttpStatusCode.Forbidden ||
             adminResponse.StatusCode == HttpStatusCode.NotFound,
             $"Expected 403 or 404, got {adminResponse.StatusCode}");
+    }
+
+    // ── Scenario: Login with MustChangePassword flag returns it true ───────────
+
+    [Fact]
+    public async Task Login_UserWithMustChangePasswordFlag_ReturnsFlagTrue()
+    {
+        var client = _factory.CreateAuthClient();
+        const string email = "force@shopease.test";
+        await client.PostAsJsonAsync("/api/auth/register",
+            new RegisterRequest("Force", "Change", email, "Password1!"));
+
+        // Flip the forced-change flag directly in the DB (simulating a seeded admin)
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var user = db.Users.Single(u => u.Email == email);
+            user.MustChangePassword = true;
+            await db.SaveChangesAsync();
+        }
+
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login",
+            new LoginRequest(email, "Password1!"));
+
+        Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
+        var body = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        Assert.NotNull(body);
+        Assert.True(body!.MustChangePassword);
+    }
+
+    // ── Scenario: User not flagged proceeds normally (flag false) ──────────────
+
+    [Fact]
+    public async Task Login_NormalUser_ReturnsMustChangePasswordFalse()
+    {
+        var client = _factory.CreateAuthClient();
+        const string email = "normal-flag@shopease.test";
+        await client.PostAsJsonAsync("/api/auth/register",
+            new RegisterRequest("Normal", "User", email, "Password1!"));
+
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login",
+            new LoginRequest(email, "Password1!"));
+
+        Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
+        var body = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        Assert.NotNull(body);
+        Assert.False(body!.MustChangePassword);
     }
 }

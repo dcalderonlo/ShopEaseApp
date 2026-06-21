@@ -1,8 +1,11 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using ShopEaseApp.Api.Infrastructure.Data;
 
 namespace ShopEaseApp.Tests.Features.Identity;
@@ -53,6 +56,25 @@ public class ShopEaseTestFactory : WebApplicationFactory<Program>
             // instances and breaks shared InMemory state across scopes.
             services.AddDbContext<AppDbContext>(options =>
                 options.UseInMemoryDatabase(_dbName));
+
+            // Override the JWT bearer signing key/issuer/audience with the test values.
+            // The middleware captures the signing key EAGERLY at startup from
+            // builder.Configuration, which (under WebApplicationFactory) still holds the
+            // appsettings.json key at that instant — the in-memory test config added via
+            // ConfigureAppConfiguration above is applied later. Re-configuring the
+            // "Bearer"-named JwtBearerOptions here (AddJwtBearer registers its setup
+            // under the scheme name "Bearer", so the override must use the same name to
+            // take effect) ensures validation uses the SAME test key that JwtService
+            // signs with, so authenticated integration tests actually authenticate.
+            services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+            {
+                options.TokenValidationParameters.IssuerSigningKey =
+                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes("TestSecretKeyForIntegrationTests_32CharsMin!"))
+                    { KeyId = "ShopEase-default-key" };
+                options.TokenValidationParameters.ValidIssuer = "ShopEaseTest";
+                options.TokenValidationParameters.ValidAudience = "ShopEaseTest";
+                options.TokenValidationParameters.TryAllIssuerSigningKeys = true;
+            });
         });
     }
 

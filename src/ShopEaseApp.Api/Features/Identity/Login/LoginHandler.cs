@@ -27,6 +27,6 @@ public class LoginHandler(
         var token = _jwtService.GenerateToken(user, roles);
         var expiry = _jwtService.GetExpiry();
 
-        return (true, new LoginResponse(token, user.Email!, roles.FirstOrDefault() ?? "Customer", expiry));
+        return (true, new LoginResponse(token, user.Email!, roles.FirstOrDefault() ?? "Customer", expiry, user.MustChangePassword));
     }
 }

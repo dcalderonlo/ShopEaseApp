@@ -58,7 +58,13 @@ builder.Services.AddAuthentication(options =>
             ValidateIssuerSigningKey = true,
             ValidIssuer = jwtSection["Issuer"],
             ValidAudience = jwtSection["Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)) { KeyId = "ShopEase-default-key" },
+            // IdentityModel 8.0+ defaults TryAllIssuerSigningKeys to false. The HMAC
+            // signing key carries no KeyId, so the kid-match lookup fails with
+            // "The signature key was not found". A stable KeyId (set on both the
+            // JwtService signing key and here) plus opting into trying all keys
+            // restores symmetric-key validation under IdentityModel 8.0+.
+            TryAllIssuerSigningKeys = true
         };
 
         // Read JWT from HttpOnly cookie first, then fall back to Authorization header
@@ -105,6 +111,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddScoped<ShopEaseApp.Api.Infrastructure.Auth.JwtService>();
 builder.Services.AddScoped<ShopEaseApp.Api.Features.Identity.Register.RegisterHandler>();
 builder.Services.AddScoped<ShopEaseApp.Api.Features.Identity.Login.LoginHandler>();
+builder.Services.AddScoped<ShopEaseApp.Api.Features.Identity.ChangePassword.ChangePasswordHandler>();
 builder.Services.AddScoped<ShopEaseApp.Api.Features.Catalog.Categories.CategoryHandler>();
 builder.Services.AddScoped<ShopEaseApp.Api.Features.Catalog.Products.ProductHandler>();
 builder.Services.AddScoped<ShopEaseApp.Api.Features.Cart.CartService>();

@@ -61,4 +61,22 @@ public class LoginTests
         var nav = ctx.Services.GetRequiredService<NavigationManager>();
         Assert.EndsWith("/", nav.Uri);
     }
+
+    // ── Scenario: MustChangePassword flag redirects to /change-password ───────
+
+    [Fact]
+    public async Task Login_UserMustChangePassword_NavigatesToChangePassword()
+    {
+        using var ctx = new TestContext();
+        var response = new LoginResponse(
+            "token-xyz", "admin@test", "Admin", DateTime.UtcNow.AddHours(1), MustChangePassword: true);
+        RegisterLoginServices(ctx, TestHelpers.MockLoginHandler(true, response));
+
+        var cut = ctx.RenderComponent<Login>();
+        cut.Find("form").Submit();
+
+        Assert.DoesNotContain("Invalid credentials.", cut.Markup);
+        var nav = ctx.Services.GetRequiredService<NavigationManager>();
+        Assert.EndsWith("/change-password", nav.Uri);
+    }
 }

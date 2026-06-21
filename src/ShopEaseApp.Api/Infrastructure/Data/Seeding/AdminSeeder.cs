@@ -22,7 +22,8 @@ public static class AdminSeeder
             Email = adminEmail,
             FirstName = "System",
             LastName = "Admin",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            MustChangePassword = true // force a password change on first login
         };
 
         var result = await userManager.CreateAsync(admin, adminPassword);
