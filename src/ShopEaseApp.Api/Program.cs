@@ -147,10 +147,20 @@ catch (Exception ex)
     app.Logger.LogWarning(ex, "Role seeding skipped — database may not be available yet.");
 }
 
+// ── Seed default admin user ────────────────────────────────────────────────────
+try
+{
+    await AdminSeeder.SeedAdminAsync(app.Services);
+}
+catch (Exception ex)
+{
+    app.Logger.LogWarning(ex, "Admin seeding skipped — database may not be available yet.");
+}
+
 // ── Middleware pipeline ───────────────────────────────────────────────────────
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
-app.UseStaticFiles();          // ← agregar esto
+app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();

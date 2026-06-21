@@ -10,7 +10,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var user = (await AuthState!).User;
+        if (AuthState is null) return;
+        var user = (await AuthState).User;
         var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId is null) return;
         var cart = await Cart.GetCartAsync(userId);

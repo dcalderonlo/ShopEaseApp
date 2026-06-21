@@ -38,7 +38,7 @@
             // the initial HTTP request (prerender), not during a SignalR post-back,
             // so this is best-effort; forceLoad re-requests "/" to pick up the cookie.
             var http = HttpContextAccessor.HttpContext;
-            if (http is not null)
+            if (http is not null && !http.Response.HasStarted)
             {
                 http.Response.Cookies.Append("auth_token", response.Token, new CookieOptions
                 {
