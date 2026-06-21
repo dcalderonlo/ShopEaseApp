@@ -161,7 +161,6 @@ app.UseOutputCache();
 app.UseEndpointDefinitions();
 
 // ── Blazor Server storefront (registered AFTER API endpoints so /api/* wins) ─
-app.MapBlazorHub();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
