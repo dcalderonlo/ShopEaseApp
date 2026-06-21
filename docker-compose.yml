@@ -1,14 +1,14 @@
 services:
   sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    image: mcr.microsoft.com/azure-sql-edge:latest
     container_name: shopeaseapp-sqlserver
     environment:
-      SA_PASSWORD: "YourStrong@Passw0rd"
+      MSSQL_SA_PASSWORD: "itla1234!"
       ACCEPT_EULA: "Y"
     ports:
       - "1433:1433"
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd -Q 'SELECT 1'"]
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P itla1234! -Q 'SELECT 1'"]
       interval: 10s
       timeout: 5s
       retries: 5
