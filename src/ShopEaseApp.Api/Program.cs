@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Components.Authorization;
 using Scalar.AspNetCore;
 using Serilog;
+using ShopEaseApp.Api.Components;
 using ShopEaseApp.Api.Infrastructure.Data;
 using ShopEaseApp.Api.Infrastructure.Data.Seeding;
 using ShopEaseApp.Api.Infrastructure.Endpoints;
@@ -107,6 +109,16 @@ builder.Services.AddScoped<ShopEaseApp.Api.Features.Catalog.Products.ProductHand
 builder.Services.AddScoped<ShopEaseApp.Api.Features.Cart.CartService>();
 builder.Services.AddScoped<ShopEaseApp.Api.Features.Orders.OrderHandler>();
 
+// ── Blazor Server storefront ─────────────────────────────────────────────────
+// Microsoft.AspNetCore.Components.Server is provided by the .NET 10 shared
+// framework (Microsoft.AspNetCore.App) via the Web SDK — no separate NuGet
+// package is required. AddInteractiveServerComponents() enables the SignalR
+// circuit + interactive render mode used by the storefront components.
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
 // ── Endpoint definitions (Vertical Slice auto-registration) ──────────────────
 builder.Services.AddEndpointDefinitions(typeof(Program));
 
@@ -143,6 +155,12 @@ app.UseOutputCache();
 
 // ── Register all feature endpoints ───────────────────────────────────────────
 app.UseEndpointDefinitions();
+
+// ── Blazor Server storefront (registered AFTER API endpoints so /api/* wins) ─
+app.MapBlazorHub();
+app.MapStaticAssets();
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
 
 app.Run();
 

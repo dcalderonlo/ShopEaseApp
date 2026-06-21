@@ -7,7 +7,7 @@ public class RegisterHandler(UserManager<AppUser> userManager)
 {
     private readonly UserManager<AppUser> _userManager = userManager;
 
-  public async Task<(bool Success, RegisterResponse? Response, IEnumerable<string> Errors)> HandleAsync(
+  public virtual async Task<(bool Success, RegisterResponse? Response, IEnumerable<string> Errors)> HandleAsync(
         RegisterRequest request)
     {
         var user = new AppUser

@@ -1,0 +1,64 @@
+@page "/checkout"
+@attribute [Authorize]
+@inject OrderHandler Orders
+@inject CartService Cart
+
+<h1>Checkout</h1>
+
+@if (_confirmedOrder is not null)
+{
+    <h2>Order confirmed!</h2>
+    <p>Your order number is #@_confirmedOrder.Id</p>
+    <a href="/orders">View your orders</a>
+}
+else if (_cart is null)
+{
+    <p>Loading…</p>
+}
+else if (!_cart.Items.Any())
+{
+    <p>Your cart is empty.</p>
+    <a href="/cart">Back to cart</a>
+}
+else
+{
+    <p>Total: @_cart.Total.ToString("C")</p>
+    <button @onclick="PlaceOrder">Confirm Checkout</button>
+}
+
+@if (_error is not null)
+{
+    <p style="color:red">@_error</p>
+}
+
+@code {
+    [CascadingParameter] public Task<AuthenticationState>? AuthState { get; set; }
+
+    private CartResponse? _cart;
+    private OrderResponse? _confirmedOrder;
+    private string? _error;
+
+    private async Task<string> UserIdAsync() =>
+        (await AuthState!).User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = await UserIdAsync();
+        _cart = await Cart.GetCartAsync(userId);
+    }
+
+    private async Task PlaceOrder()
+    {
+        var userId = await UserIdAsync();
+        var (success, order, error) = await Orders.CreateFromCartAsync(userId);
+        if (success && order is not null)
+        {
+            _confirmedOrder = order;
+            _cart = await Cart.GetCartAsync(userId); // cart cleared by handler
+        }
+        else
+        {
+            _error = error;
+        }
+    }
+}

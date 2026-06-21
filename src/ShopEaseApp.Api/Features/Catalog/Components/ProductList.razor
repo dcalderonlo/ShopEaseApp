@@ -1,0 +1,33 @@
+@page "/"
+@inject ProductHandler Handler
+
+<h1>Catalog</h1>
+
+@if (_products is null)
+{
+    <p>Loading…</p>
+}
+else if (!_products.Any())
+{
+    <p>No products available.</p>
+}
+else
+{
+    <ul>
+        @foreach (var product in _products)
+        {
+            <li>
+                <a href="@($"/product/{product.Id}")"><strong>@product.Name</strong></a>
+                <span> — @product.CategoryName</span>
+                <span> — @((product.Variants.FirstOrDefault()?.Price ?? 0m).ToString("C"))</span>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private IEnumerable<ProductResponse>? _products;
+
+    protected override async Task OnInitializedAsync() =>
+        _products = await Handler.GetAllAsync();
+}

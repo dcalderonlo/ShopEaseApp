@@ -1,0 +1,63 @@
+@page "/cart"
+@attribute [Authorize]
+@inject CartService Cart
+
+<h1>Your Cart</h1>
+
+@if (_cart is null)
+{
+    <p>Loading…</p>
+}
+else if (!_cart.Items.Any())
+{
+    <p>Your cart is empty.</p>
+    <a href="/">Browse catalog</a>
+}
+else
+{
+    <ul>
+        @foreach (var item in _cart.Items)
+        {
+            <li>
+                <strong>@item.ProductName</strong> — @item.VariantName
+                <input @bind="_quantities[item.VariantId]" />
+                <button @onclick="() => UpdateItem(item.VariantId)">Update</button>
+                <button @onclick="() => RemoveItem(item.VariantId)">Remove</button>
+                <span>@item.PriceSnapshot.ToString("C") × @item.Quantity</span>
+            </li>
+        }
+    </ul>
+    <p>Total: @_cart.Total.ToString("C")</p>
+    <a href="/checkout">Checkout</a>
+}
+
+@code {
+    [CascadingParameter] public Task<AuthenticationState>? AuthState { get; set; }
+
+    private CartResponse? _cart;
+    private readonly Dictionary<int, int> _quantities = new();
+
+    private async Task<string> UserIdAsync() =>
+        (await AuthState!).User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = await UserIdAsync();
+        _cart = await Cart.GetCartAsync(userId);
+        foreach (var item in _cart.Items)
+            _quantities[item.VariantId] = item.Quantity;
+    }
+
+    private async Task UpdateItem(int variantId)
+    {
+        var userId = await UserIdAsync();
+        await Cart.UpdateItemAsync(userId, new UpdateItemRequest(variantId, _quantities[variantId]));
+        _cart = await Cart.GetCartAsync(userId);
+    }
+
+    private async Task RemoveItem(int variantId)
+    {
+        var userId = await UserIdAsync();
+        _cart = await Cart.RemoveItemAsync(userId, variantId);
+    }
+}

@@ -1,0 +1,19 @@
+@inject CartService Cart
+
+<a href="/cart">@CartLabel</a>
+
+@code {
+    [CascadingParameter] public Task<AuthenticationState>? AuthState { get; set; }
+    private int _count;
+
+    private string CartLabel => _count > 0 ? $"Cart ({_count})" : "Cart";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthState!).User;
+        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId is null) return;
+        var cart = await Cart.GetCartAsync(userId);
+        _count = cart.Items.Sum(i => i.Quantity);
+    }
+}

@@ -1,0 +1,51 @@
+@page "/product/{Id:int}"
+@inject ProductHandler Handler
+@inject CartService Cart
+@inject NavigationManager Nav
+
+@if (_product is null)
+{
+    <h1>Product not found</h1>
+    <p>The product you requested does not exist or is no longer available.</p>
+    <a href="/">Back to catalog</a>
+}
+else
+{
+    <h1>@_product.Name</h1>
+    <p>@_product.Description</p>
+    <p>Category: @_product.CategoryName</p>
+
+    <h3>Variants</h3>
+    <ul>
+        @foreach (var variant in _product.Variants)
+        {
+            <li>
+                @variant.Name — @variant.Price.ToString("C") (Stock: @variant.Stock)
+                <button @onclick="() => AddToCart(variant.Id)">Add to Cart</button>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [CascadingParameter] public Task<AuthenticationState>? AuthState { get; set; }
+
+    private ProductResponse? _product;
+
+    protected override async Task OnInitializedAsync() =>
+        _product = await Handler.GetByIdAsync(Id);
+
+    private async Task AddToCart(int variantId)
+    {
+        var user = (await AuthState!).User;
+        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId is null)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+        await Cart.AddItemAsync(userId, new AddItemRequest(variantId, 1));
+        Nav.NavigateTo("/cart");
+    }
+}

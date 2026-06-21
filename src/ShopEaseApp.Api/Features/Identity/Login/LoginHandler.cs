@@ -13,7 +13,7 @@ public class LoginHandler(
     private readonly SignInManager<AppUser> _signInManager = signInManager;
     private readonly JwtService _jwtService = jwtService;
 
-  public async Task<(bool Success, LoginResponse? Response)> HandleAsync(LoginRequest request)
+  public virtual async Task<(bool Success, LoginResponse? Response)> HandleAsync(LoginRequest request)
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user is null)

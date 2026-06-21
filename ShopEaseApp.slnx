@@ -3,6 +3,7 @@
     <Project Path="src/ShopEaseApp.Api/ShopEaseApp.Api.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/ShopEaseApp.Blazor.Tests/ShopEaseApp.Blazor.Tests.csproj" />
     <Project Path="tests/ShopEaseApp.Tests/ShopEaseApp.Tests.csproj" />
   </Folder>
 </Solution>

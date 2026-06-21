@@ -1,0 +1,29 @@
+@page "/logout"
+@attribute [AllowAnonymous]
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager Nav
+
+<h1>Logging out…</h1>
+
+@code {
+    protected override void OnInitialized()
+    {
+        // Clear the auth cookie. HttpContext is available on the initial GET to
+        // /logout, so the delete takes effect before the forced reload to "/".
+        var http = HttpContextAccessor.HttpContext;
+        if (http is not null)
+        {
+            http.Response.Cookies.Delete("auth_token");
+        }
+
+        // Notify the Blazor circuit that the auth state changed.
+        if (AuthProvider is ServerAuthenticationStateProvider server)
+        {
+            server.NotifyStateChanged();
+        }
+
+        Nav.NavigateTo("/", forceLoad: true);
+    }
+}

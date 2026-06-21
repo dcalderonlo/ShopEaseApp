@@ -1,0 +1,41 @@
+@page "/orders"
+@attribute [Authorize]
+@inject OrderHandler Orders
+
+<h1>My Orders</h1>
+
+@if (_orders is null)
+{
+    <p>Loading…</p>
+}
+else if (!_orders.Any())
+{
+    <p>You have no orders yet.</p>
+    <a href="/">Browse catalog</a>
+}
+else
+{
+    <ul>
+        @foreach (var order in _orders)
+        {
+            <li>
+                <strong>#@order.Id</strong>
+                <span> — @order.CreatedAt.ToString("d")</span>
+                <span> — @order.Status</span>
+                <span> — @order.Total.ToString("C")</span>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    [CascadingParameter] public Task<AuthenticationState>? AuthState { get; set; }
+
+    private IEnumerable<OrderResponse>? _orders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = (await AuthState!).User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        _orders = await Orders.GetCustomerHistoryAsync(userId);
+    }
+}
