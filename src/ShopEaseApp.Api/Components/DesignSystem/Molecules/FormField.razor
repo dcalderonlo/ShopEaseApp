@@ -1,0 +1,17 @@
+@* Molecule: Label + input + icon combo *@
+<div class="space-y-xs">
+    <label class="font-label-sm text-label-sm text-on-surface-variant ml-sm"
+           for="@Id">@Label</label>
+    <EaseInput Icon="@Icon" id="@Id" placeholder="@Placeholder"
+               type="@Type" @bind-value="@Value" @bind-value:event="oninput" />
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Id { get; set; } = "";
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public string Placeholder { get; set; } = "";
+    [Parameter] public string Type { get; set; } = "text";
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+}

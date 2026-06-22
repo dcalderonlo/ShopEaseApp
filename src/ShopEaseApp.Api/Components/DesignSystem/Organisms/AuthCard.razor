@@ -1,0 +1,10 @@
+@* Organism: The card container with transition animation *@
+<div class="bg-surface-container-lowest rounded-xl
+            shadow-[0_8px_24px_rgba(46,91,255,0.08)]
+            border border-outline-variant p-md md:p-lg form-transition">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

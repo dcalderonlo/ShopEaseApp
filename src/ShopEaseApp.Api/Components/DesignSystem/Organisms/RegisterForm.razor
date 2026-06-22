@@ -1,0 +1,91 @@
+@* Organism: Register form *@
+<div class="space-y-md">
+    <div class="mb-lg">
+        <h2 class="font-headline-md text-headline-md text-on-surface">Create Account</h2>
+        <p class="font-body-md text-on-surface-variant">Join the EasyShop community today.</p>
+    </div>
+
+    <EditForm Model="Model" OnValidSubmit="HandleSubmit" class="space-y-md">
+        <DataAnnotationsValidator />
+
+        <FormField Label="Full Name" Id="reg-name" Icon="person"
+                   Placeholder="John Doe" @bind-value="Model.FirstName" @bind-value:event="oninput" />
+
+        <FormField Label="Email Address" Id="reg-email" Icon="mail"
+                   Type="email" Placeholder="name@example.com"
+                   @bind-value="Model.Email" @bind-value:event="oninput" />
+
+        <FormField Label="Password" Id="reg-password" Icon="lock"
+                   Type="password" Placeholder="Create a strong password"
+                   @bind-value="Model.Password" @bind-value:event="oninput" />
+
+        <div class="flex items-start gap-sm px-sm pt-sm">
+            <input class="mt-1 rounded-sm text-primary focus:ring-primary border-outline-variant"
+                   id="terms" type="checkbox" @bind="Model.AgreedToTerms" />
+            <label class="font-label-sm text-label-sm text-on-surface-variant" for="terms">
+                I agree to the <a class="text-primary hover:underline" href="#">Terms of Service</a>
+                and <a class="text-primary hover:underline" href="#">Privacy Policy</a>.
+            </label>
+        </div>
+
+        <div class="pt-md">
+            <EaseButton Variant="secondary" Icon="how_to_reg"
+                        OnClick="HandleSubmit">Create Account</EaseButton>
+        </div>
+    </EditForm>
+
+    @if (!string.IsNullOrEmpty(Error))
+    {
+        <p class="text-error font-body-md text-center">@Error</p>
+    }
+
+    <p class="text-center font-body-md text-on-surface-variant pt-md">
+        Already have an account?
+        <AuthToggle OnClick="OnToggleLogin">Login</AuthToggle>
+    </p>
+</div>
+
+@code {
+    [Parameter] public EventCallback OnToggleLogin { get; set; }
+
+    private string Error = "";
+    private RegisterFormModel Model = new();
+
+    private async Task HandleSubmit()
+    {
+        if (!Model.AgreedToTerms)
+        {
+            Error = "You must agree to the terms.";
+            return;
+        }
+
+        Error = "";
+        try
+        {
+            var handler = RegisterHandler;
+            var request = new ShopEaseApp.Api.Features.Identity.Register.RegisterRequest(
+                Model.FirstName, "", Model.Email, Model.Password);
+            var (success, _, errors) = await handler.HandleAsync(request);
+
+            if (success)
+                Navigation.NavigateTo("/auth?mode=login", forceLoad: true);
+            else
+                Error = string.Join(", ", errors);
+        }
+        catch
+        {
+            Error = "An error occurred. Please try again.";
+        }
+    }
+
+    private class RegisterFormModel
+    {
+        public string FirstName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+        public bool AgreedToTerms { get; set; }
+    }
+
+    [Inject] private ShopEaseApp.Api.Features.Identity.Register.RegisterHandler RegisterHandler { get; set; } = null!;
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
+}

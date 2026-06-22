@@ -1,0 +1,26 @@
+@* Atom: Primary or secondary button with optional icon *@
+<button type="@Type"
+        class="@GetVariantClass() w-full py-md font-body-md font-semibold rounded-xl shadow-md
+               transition-all active:scale-95 flex items-center justify-center gap-sm group @Class"
+        @attributes="AdditionalAttributes">
+    <span>@ChildContent</span>
+    @if (!string.IsNullOrEmpty(Icon))
+    {
+        <EaseIcon Name="@Icon" Class="group-hover:translate-x-1 transition-transform" />
+    }
+</button>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public string Variant { get; set; } = "primary"; // primary | secondary
+    [Parameter] public string Type { get; set; } = "submit";
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; } = new();
+
+    private string GetVariantClass() => Variant switch
+    {
+        "secondary" => "bg-secondary hover:bg-secondary-container text-on-primary",
+        _ => "bg-primary hover:bg-primary-container text-on-primary"
+    };
+}

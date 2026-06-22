@@ -1,0 +1,19 @@
+@* Atom: Styled text input with optional leading icon *@
+<div class="relative">
+    @if (!string.IsNullOrEmpty(Icon))
+    {
+        <span class="material-symbols-outlined absolute left-md top-1/2
+                     -translate-y-1/2 text-outline">@Icon</span>
+    }
+    <input @attributes="AdditionalAttributes"
+           class="w-full @(string.IsNullOrEmpty(Icon) ? "pl-md" : "pl-[52px]") pr-md py-md
+                  bg-surface-container-low border-transparent
+                  focus:border-primary focus:ring-4 focus:ring-primary/10
+                  rounded-lg transition-all font-body-md @Class" />
+</div>
+
+@code {
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; } = new();
+}

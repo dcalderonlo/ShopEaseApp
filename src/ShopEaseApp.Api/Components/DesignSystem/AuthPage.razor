@@ -1,0 +1,46 @@
+@page "/auth"
+@attribute [AllowAnonymous]
+@using ShopEaseApp.Api.Components.DesignSystem.Atoms
+@using ShopEaseApp.Api.Components.DesignSystem.Molecules
+@using ShopEaseApp.Api.Components.DesignSystem.Organisms
+
+@* ── Background decoration ──────────────────────────────────────── *@
+<div class="vibrant-blob top-[-20%] left-[-10%]"></div>
+<div class="vibrant-blob bottom-[-20%] right-[-10%]"></div>
+
+@* ── Main container ──────────────────────────────────────────────── *@
+<main class="w-full max-w-[480px] z-10">
+    <BrandHeader />
+
+    <AuthCard>
+        @if (_showLogin)
+        {
+            <LoginForm OnToggleRegister="() => ToggleView(false)" />
+        }
+        else
+        {
+            <RegisterForm OnToggleLogin="() => ToggleView(true)" />
+        }
+    </AuthCard>
+
+    <AuthFooter />
+</main>
+
+@code {
+    private bool _showLogin = true;
+
+    protected override void OnInitialized()
+    {
+        // Support ?mode=register to open registration view directly
+        var uri = new Uri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        _showLogin = query["mode"] != "register";
+    }
+
+    private void ToggleView(bool showLogin)
+    {
+        _showLogin = showLogin;
+    }
+
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
+}

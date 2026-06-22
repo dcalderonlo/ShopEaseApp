@@ -1,0 +1,10 @@
+@* Molecule: Toggle button between login/register *@
+<button class="text-primary font-semibold hover:underline underline-offset-4"
+        @onclick="OnClick">
+    @ChildContent
+</button>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+}

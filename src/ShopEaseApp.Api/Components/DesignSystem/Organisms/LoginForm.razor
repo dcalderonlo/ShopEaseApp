@@ -1,0 +1,82 @@
+@* Organism: Login form *@
+<div class="space-y-md">
+    <div class="mb-lg">
+        <h2 class="font-headline-md text-headline-md text-on-surface">Welcome back</h2>
+        <p class="font-body-md text-on-surface-variant">Please enter your details to sign in.</p>
+    </div>
+
+    <EditForm Model="Model" OnValidSubmit="HandleSubmit" class="space-y-md">
+        <DataAnnotationsValidator />
+
+        <FormField Label="Email Address" Id="email" Icon="mail"
+                   Type="email" Placeholder="name@example.com"
+                   @bind-value="Model.Email" @bind-value:event="oninput" />
+
+        <div class="space-y-xs">
+            <div class="flex justify-between items-center px-sm">
+                <label class="font-label-sm text-label-sm text-on-surface-variant">Password</label>
+                <a class="font-label-sm text-label-sm text-primary hover:underline underline-offset-4"
+                   href="#">Forgot Password?</a>
+            </div>
+            <EaseInput Icon="lock" type="password" placeholder="••••••••"
+                       @bind-value="Model.Password" @bind-value:event="oninput" />
+        </div>
+
+        <div class="pt-md">
+            <EaseButton Icon="arrow_forward" OnClick="HandleSubmit">Login to EasyShop</EaseButton>
+        </div>
+    </EditForm>
+
+    @if (!string.IsNullOrEmpty(Error))
+    {
+        <p class="text-error font-body-md text-center">@Error</p>
+    }
+
+    <p class="text-center font-body-md text-on-surface-variant pt-md">
+        Don't have an account?
+        <AuthToggle OnClick="OnToggleRegister">Register</AuthToggle>
+    </p>
+</div>
+
+@code {
+    [Parameter] public EventCallback OnToggleRegister { get; set; }
+
+    private string Error = "";
+    private LoginFormModel Model = new();
+
+    private async Task HandleSubmit()
+    {
+        Error = "";
+        try
+        {
+            var handler = LoginHandler;
+            var (success, response) = await handler.HandleAsync(
+                new ShopEaseApp.Api.Features.Identity.Login.LoginRequest(Model.Email, Model.Password));
+
+            if (success && response is not null)
+            {
+                if (response.MustChangePassword)
+                    Navigation.NavigateTo("/change-password", forceLoad: true);
+                else
+                    Navigation.NavigateTo("/", forceLoad: true);
+            }
+            else
+            {
+                Error = "Invalid credentials.";
+            }
+        }
+        catch
+        {
+            Error = "An error occurred. Please try again.";
+        }
+    }
+
+    private class LoginFormModel
+    {
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+    }
+
+    [Inject] private ShopEaseApp.Api.Features.Identity.Login.LoginHandler LoginHandler { get; set; } = null!;
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
+}
