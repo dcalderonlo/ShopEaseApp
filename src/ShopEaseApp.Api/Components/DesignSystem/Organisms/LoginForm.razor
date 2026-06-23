@@ -1,6 +1,7 @@
 @* Organism: Login form — glass card style, matches RegisterForm *@
 @using Microsoft.AspNetCore.Http
 @inject IHttpContextAccessor HttpContextAccessor
+@inject IWebHostEnvironment Env
 <div class="glass-card shadow-lg rounded-lg overflow-hidden p-md md:p-lg border border-surface-container-high">
     <div class="mb-lg">
         <h2 class="font-headline-md text-headline-md text-on-surface mb-2">Bienvenido de nuevo</h2>
@@ -107,8 +108,8 @@
                     http.Response.Cookies.Append("auth_token", response.Token, new CookieOptions
                     {
                         HttpOnly = true,
-                        Secure = true,
-                        SameSite = SameSiteMode.Strict,
+                        Secure = !Env.IsDevelopment(),
+                        SameSite = SameSiteMode.Lax,
                         Expires = response.ExpiresAt
                     });
                 }

@@ -12,7 +12,8 @@ public class LoginEndpoint : IEndpointDefinition
             [FromBody] LoginRequest request,
             LoginHandler handler,
             IValidator<LoginRequest> validator,
-            HttpContext httpContext) =>
+            HttpContext httpContext,
+            IWebHostEnvironment env) =>
         {
             var validation = await validator.ValidateAsync(request);
             if (!validation.IsValid)
@@ -26,8 +27,8 @@ public class LoginEndpoint : IEndpointDefinition
             httpContext.Response.Cookies.Append("auth_token", response.Token, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
+                Secure = !env.IsDevelopment(),
+                SameSite = SameSiteMode.Lax,
                 Expires = response.ExpiresAt
             });
 
