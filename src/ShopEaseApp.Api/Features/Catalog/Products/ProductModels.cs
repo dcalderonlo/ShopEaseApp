@@ -1,6 +1,6 @@
 namespace ShopEaseApp.Api.Features.Catalog.Products;
 
-public record VariantSummary(int Id, string Name, decimal Price, int Stock);
+public record VariantSummary(int Id, string Name, decimal Price, int Stock, int MinimumStockLevel, string Status);
 
 public record ProductResponse(
     int Id,
@@ -11,7 +11,7 @@ public record ProductResponse(
     IEnumerable<string> ImageUrls,
     IEnumerable<VariantSummary> Variants);
 
-public record CreateVariantRequest(string Name, decimal Price, int Stock);
+public record CreateVariantRequest(string Name, decimal Price, int Stock, int MinimumStockLevel = 5);
 
 public record CreateProductRequest(
     string Name,

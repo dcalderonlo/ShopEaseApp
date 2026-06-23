@@ -116,6 +116,7 @@ builder.Services.AddScoped<ShopEaseApp.Api.Features.Catalog.Categories.CategoryH
 builder.Services.AddScoped<ShopEaseApp.Api.Features.Catalog.Products.ProductHandler>();
 builder.Services.AddScoped<ShopEaseApp.Api.Features.Cart.CartService>();
 builder.Services.AddScoped<ShopEaseApp.Api.Features.Orders.OrderHandler>();
+builder.Services.AddScoped<ShopEaseApp.Api.Features.Admin.Dashboard.AdminDashboardHandler>();
 
 // ── Blazor Server storefront ─────────────────────────────────────────────────
 // Microsoft.AspNetCore.Components.Server is provided by the .NET 10 shared

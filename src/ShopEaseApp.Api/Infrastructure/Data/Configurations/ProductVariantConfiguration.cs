@@ -13,6 +13,7 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
         builder.Property(v => v.Name).IsRequired().HasMaxLength(100);
         builder.Property(v => v.Price).HasPrecision(18, 2);
         builder.Property(v => v.Stock).IsRequired();
+        builder.Property(v => v.MinimumStockLevel).IsRequired().HasDefaultValue(5);
 
         builder.HasOne(v => v.Product)
             .WithMany(p => p.Variants)

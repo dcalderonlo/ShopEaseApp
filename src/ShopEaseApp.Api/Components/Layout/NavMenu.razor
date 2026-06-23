@@ -2,6 +2,11 @@
     <a href="/">Catalog</a>
     <CartSummary />
     <a href="/orders">Orders</a>
+    <AuthorizeView Roles="Admin">
+        <Authorized>
+            <a href="/admin">Admin</a>
+        </Authorized>
+    </AuthorizeView>
     <AuthorizeView>
         <Authorized>
             <span>@context.User.FindFirstValue(ClaimTypes.Email)</span>

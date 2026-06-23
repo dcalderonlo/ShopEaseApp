@@ -113,4 +113,92 @@ public class ProductHandlerTests
         Assert.False(success);
         Assert.Equal("Product not found.", error);
     }
+
+    // ── Scenario: Admin creates variant with explicit MinimumStockLevel ────────
+
+    [Fact]
+    public async Task CreateAsync_PersistsExplicitMinimumStockLevelFromRequest()
+    {
+        await using var db = CreateDb();
+        var catId = await SeedCategoryAsync(db);
+        var handler = new ProductHandler(db);
+
+        var request = new CreateProductRequest(
+            "Bracelet", null, catId, [],
+            [new CreateVariantRequest("Medium", 19.99m, 7, 8)]);
+
+        var (success, response, _) = await handler.CreateAsync(request);
+
+        Assert.True(success);
+        var variant = Assert.Single(response!.Variants);
+        Assert.Equal(8, variant.MinimumStockLevel);
+        Assert.Equal(7, variant.Stock);
+    }
+
+    // ── Scenario: MinimumStockLevel defaults to 5 when omitted on create ───────
+
+    [Fact]
+    public async Task CreateAsync_DefaultsMinimumStockLevelToFiveWhenOmitted()
+    {
+        await using var db = CreateDb();
+        var catId = await SeedCategoryAsync(db);
+        var handler = new ProductHandler(db);
+
+        var request = new CreateProductRequest(
+            "Bracelet", null, catId, [],
+            [new CreateVariantRequest("Medium", 19.99m, 7)]);
+
+        var (success, response, _) = await handler.CreateAsync(request);
+
+        Assert.True(success);
+        var variant = Assert.Single(response!.Variants);
+        Assert.Equal(5, variant.MinimumStockLevel);
+    }
+
+    // ── Scenario: VariantSummary includes MinimumStockLevel and computed Status ─
+
+    [Fact]
+    public async Task GetAllAsync_VariantSummaryIncludesMinimumStockLevelAndStatus()
+    {
+        await using var db = CreateDb();
+        var catId = await SeedCategoryAsync(db);
+        db.Products.Add(new Product
+        {
+            Name = "Ring",
+            CategoryId = catId,
+            ImageUrls = [],
+            Variants = [new() { Name = "Gold", Price = 99.99m, Stock = 3, MinimumStockLevel = 5 }]
+        });
+        await db.SaveChangesAsync();
+
+        var handler = new ProductHandler(db);
+        var results = await handler.GetAllAsync();
+
+        var variant = Assert.Single(results.First().Variants);
+        Assert.Equal(5, variant.MinimumStockLevel);
+        Assert.Equal("Low Stock", variant.Status);
+    }
+
+    // ── Scenario: Status reflects In Stock when above minimum ──────────────────
+
+    [Fact]
+    public async Task GetAllAsync_VariantSummaryStatusInStockWhenAboveMinimum()
+    {
+        await using var db = CreateDb();
+        var catId = await SeedCategoryAsync(db);
+        db.Products.Add(new Product
+        {
+            Name = "Ring",
+            CategoryId = catId,
+            ImageUrls = [],
+            Variants = [new() { Name = "Gold", Price = 99.99m, Stock = 20, MinimumStockLevel = 5 }]
+        });
+        await db.SaveChangesAsync();
+
+        var handler = new ProductHandler(db);
+        var results = await handler.GetAllAsync();
+
+        var variant = Assert.Single(results.First().Variants);
+        Assert.Equal("In Stock", variant.Status);
+    }
 }

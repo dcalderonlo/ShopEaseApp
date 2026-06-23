@@ -12,7 +12,9 @@ public class ProductHandler(AppDbContext db)
         p.Id, p.Name, p.Description,
         p.CategoryId, p.Category.Name,
         p.ImageUrls,
-        p.Variants.Select(v => new VariantSummary(v.Id, v.Name, v.Price, v.Stock)));
+        p.Variants.Select(v => new VariantSummary(
+            v.Id, v.Name, v.Price, v.Stock, v.MinimumStockLevel,
+            StockStatus.Compute(v.Stock, v.MinimumStockLevel))));
 
     // ── Queries ───────────────────────────────────────────────────────────────
 
@@ -51,7 +53,8 @@ public class ProductHandler(AppDbContext db)
             {
                 Name = v.Name,
                 Price = v.Price,
-                Stock = v.Stock
+                Stock = v.Stock,
+                MinimumStockLevel = v.MinimumStockLevel
             })]
         };
 

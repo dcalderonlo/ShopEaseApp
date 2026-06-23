@@ -1,0 +1,135 @@
+@page "/admin"
+@attribute [Authorize(Roles = "Admin")]
+@inject AdminDashboardHandler Handler
+
+<h1>Admin Dashboard</h1>
+
+@if (_metrics is null)
+{
+    <p>Loading…</p>
+}
+else
+{
+    <div class="grid grid-cols-4 gap-md">
+        <div class="card">Total Products: @_metrics.TotalProducts</div>
+        <div class="card">Total SKUs: @_metrics.TotalSkus</div>
+        <div class="card">Low Stock: @_metrics.LowStockItems</div>
+        <div class="card">Inventory Value: $@_metrics.InventoryValue</div>
+    </div>
+
+    <div class="filter-chips">
+        <button @onclick="() => SetFilter(null)">All</button>
+        <button @onclick='() => SetFilter("In Stock")'>In Stock</button>
+        <button @onclick='() => SetFilter("Low Stock")'>Low Stock</button>
+        <button @onclick='() => SetFilter("Out of Stock")'>Out of Stock</button>
+    </div>
+
+    @if (_products is null)
+    {
+        <p>Loading products…</p>
+    }
+    else if (!_products.Any())
+    {
+        <p>No products match this filter.</p>
+    }
+    else
+    {
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Category</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                    <th>Price</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in _products)
+                {
+                    <tr>
+                        <td>@p.ProductName</td>
+                        <td>@p.CategoryName</td>
+                        <td>@p.Stock</td>
+                        <td><span class="status-badge @StatusClass(p.Status)">@p.Status</span></td>
+                        <td>@p.Price.ToString("C")</td>
+                        <td>
+                            <button @onclick="() => OpenEdit(p)">Edit</button>
+                            <button @onclick="() => OpenDelete(p)">Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <AdminEditModal @ref="_editModal" Product="_selected" Visible="_showEdit"
+                    OnClose="CloseEdit" OnSaved="OnEditSaved" />
+    <AdminDeleteModal @ref="_deleteModal" Product="_selected" Visible="_showDelete"
+                      OnClose="CloseDelete" OnDeleted="OnDeleteSaved" />
+}
+
+@code {
+    private DashboardResponse? _metrics;
+    private List<AdminProductResponse>? _products;
+    private string? _statusFilter;
+    private AdminProductResponse? _selected;
+    private bool _showEdit;
+    private bool _showDelete;
+    private AdminEditModal? _editModal;
+    private AdminDeleteModal? _deleteModal;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _metrics = await Handler.GetMetricsAsync();
+        _products = await Handler.GetProductsAsync(_statusFilter);
+    }
+
+    private async Task SetFilter(string? filter)
+    {
+        _statusFilter = filter;
+        _products = await Handler.GetProductsAsync(_statusFilter);
+    }
+
+    private void OpenEdit(AdminProductResponse product)
+    {
+        _selected = product;
+        _showEdit = true;
+    }
+
+    private void OpenDelete(AdminProductResponse product)
+    {
+        _selected = product;
+        _showDelete = true;
+    }
+
+    private void CloseEdit() => _showEdit = false;
+    private void CloseDelete() => _showDelete = false;
+
+    private async Task OnEditSaved()
+    {
+        _showEdit = false;
+        await ReloadAsync();
+    }
+
+    private async Task OnDeleteSaved()
+    {
+        _showDelete = false;
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _metrics = await Handler.GetMetricsAsync();
+        _products = await Handler.GetProductsAsync(_statusFilter);
+    }
+
+    private static string StatusClass(string status) => status switch
+    {
+        "In Stock" => "badge-success",
+        "Low Stock" => "badge-warning",
+        "Out of Stock" => "badge-danger",
+        _ => "badge"
+    };
+}
