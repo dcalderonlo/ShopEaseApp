@@ -69,16 +69,14 @@
     }
 
     <div class="mt-lg text-center">
-        <button class="font-body-md text-primary hover:underline transition-colors decoration-2 underline-offset-4"
-                @onclick="OnToggleRegister">
-            ¿No tienes cuenta? Regístrate
-        </button>
+        <a href="/register"
+           class="font-body-md text-primary hover:underline transition-colors decoration-2 underline-offset-4">
+            Don't have an account? Sign Up
+        </a>
     </div>
 </div>
 
 @code {
-    [Parameter] public EventCallback OnToggleRegister { get; set; }
-
     private string Error = "";
     private bool _showPassword;
     private bool _isSubmitting;

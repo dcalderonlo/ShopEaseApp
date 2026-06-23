@@ -1,56 +1,53 @@
-@* Organism: Register form — glass card style, Spanish UI *@
+@* Organism: Register form — glass card style, English UI *@
 <div class="glass-card shadow-lg rounded-lg overflow-hidden p-md md:p-lg border border-surface-container-high">
     <div class="mb-lg">
-        <h2 class="font-headline-md text-headline-md text-on-surface mb-2">Crea tu cuenta</h2>
-        <p class="font-body-md text-on-surface-variant">Únete a nuestra comunidad de compradores inteligentes hoy mismo.</p>
+        <h2 class="font-headline-md text-headline-md text-on-surface mb-2">Create your account</h2>
+        <p class="font-body-md text-on-surface-variant">Join our community of smart shoppers today.</p>
     </div>
 
     <EditForm Model="Model" OnValidSubmit="HandleSubmit" class="space-y-gutter">
         <DataAnnotationsValidator />
 
-        @* Name Row *@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
             <div class="flex flex-col gap-xs">
-                <label class="font-label-sm text-label-sm text-on-surface-variant px-1">Nombre</label>
+                <label class="font-label-sm text-label-sm text-on-surface-variant px-1">First Name</label>
                 <input @bind="Model.FirstName" @bind:event="oninput"
                        class="w-full p-md bg-surface-container-low border border-outline-variant
                               rounded-xl focus:ring-2 focus:ring-primary focus:border-primary
                               transition-all duration-300 outline-none font-body-md text-on-surface"
-                       placeholder="Ej. Juan" type="text" />
+                       placeholder="e.g. John" type="text" />
             </div>
             <div class="flex flex-col gap-xs">
-                <label class="font-label-sm text-label-sm text-on-surface-variant px-1">Apellido</label>
+                <label class="font-label-sm text-label-sm text-on-surface-variant px-1">Last Name</label>
                 <input @bind="Model.LastName" @bind:event="oninput"
                        class="w-full p-md bg-surface-container-low border border-outline-variant
                               rounded-xl focus:ring-2 focus:ring-primary focus:border-primary
                               transition-all duration-300 outline-none font-body-md text-on-surface"
-                       placeholder="Ej. Pérez" type="text" />
+                       placeholder="e.g. Doe" type="text" />
             </div>
         </div>
 
-        @* Email *@
         <div class="flex flex-col gap-xs">
-            <label class="font-label-sm text-label-sm text-on-surface-variant px-1">Correo Electrónico</label>
+            <label class="font-label-sm text-label-sm text-on-surface-variant px-1">Email Address</label>
             <div class="relative">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">mail</span>
                 <input @bind="Model.Email" @bind:event="oninput"
                        class="w-full pl-12 pr-md py-md bg-surface-container-low border border-outline-variant
                               rounded-xl focus:ring-2 focus:ring-primary focus:border-primary
                               transition-all duration-300 outline-none font-body-md text-on-surface"
-                       placeholder="nombre@ejemplo.com" type="email" />
+                       placeholder="name@example.com" type="email" />
             </div>
         </div>
 
-        @* Password with toggle *@
         <div class="flex flex-col gap-xs">
-            <label class="font-label-sm text-label-sm text-on-surface-variant px-1">Contraseña</label>
+            <label class="font-label-sm text-label-sm text-on-surface-variant px-1">Password</label>
             <div class="relative">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">lock</span>
                 <input @bind="Model.Password" @bind:event="oninput"
                        class="w-full pl-12 pr-12 py-md bg-surface-container-low border border-outline-variant
                               rounded-xl focus:ring-2 focus:ring-primary focus:border-primary
                               transition-all duration-300 outline-none font-body-md text-on-surface"
-                       placeholder="Mínimo 6 caracteres" type="@(_showPassword ? "text" : "password")" />
+                       placeholder="Min 6 characters" type="@(_showPassword ? "text" : "password")" />
                 <button type="button"
                         class="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors"
                         @onclick="() => _showPassword = !_showPassword">
@@ -59,16 +56,14 @@
             </div>
         </div>
 
-        @* Terms *@
         <div class="flex items-start gap-3 mt-4">
             <input @bind="Model.AgreedToTerms"
                    class="mt-1 rounded text-primary focus:ring-primary-container h-4 w-4" id="terms" type="checkbox" />
             <label class="font-label-sm text-label-sm text-on-surface-variant leading-tight" for="terms">
-                Al registrarte, aceptas recibir correos electrónicos de EasyShop sobre promociones y actualizaciones.
+                By registering, you agree to receive emails from EasyShop about promotions and updates.
             </label>
         </div>
 
-        @* Submit *@
         <button type="submit" disabled="@_isSubmitting"
                 class="w-full bg-primary-container text-on-primary-container py-md px-lg rounded-full
                        font-semibold text-body-lg flex items-center justify-center gap-2
@@ -77,16 +72,16 @@
             @if (_isSubmitting)
             {
                 <span class="material-symbols-outlined animate-spin">progress_activity</span>
-                <span>Procesando...</span>
+                <span>Processing...</span>
             }
             else if (_success)
             {
                 <span class="material-symbols-outlined">check_circle</span>
-                <span>¡Cuenta Creada!</span>
+                <span>Account Created!</span>
             }
             else
             {
-                <span>Registrarse en EasyShop</span>
+                <span>Register at EasyShop</span>
                 <span class="material-symbols-outlined">arrow_forward</span>
             }
         </button>
@@ -100,7 +95,7 @@
     <div class="mt-lg text-center">
         <button class="font-body-md text-primary hover:underline transition-colors decoration-2 underline-offset-4"
                 @onclick="OnToggleLogin">
-            Ya tengo una cuenta. Iniciar Sesión
+            Already have an account? Sign In
         </button>
     </div>
 </div>
@@ -118,7 +113,7 @@
     {
         if (!Model.AgreedToTerms)
         {
-            Error = "Debes aceptar los términos para registrarte.";
+            Error = "You must agree to the terms to register.";
             return;
         }
 
@@ -137,7 +132,7 @@
             {
                 _success = true;
                 await Task.Delay(1500);
-                Navigation.NavigateTo("/login?mode=login", forceLoad: true);
+                Navigation.NavigateTo("/login", forceLoad: true);
             }
             else
             {
@@ -146,7 +141,7 @@
         }
         catch
         {
-            Error = "Ocurrió un error. Intenta de nuevo.";
+            Error = "An error occurred. Please try again.";
         }
         finally
         {

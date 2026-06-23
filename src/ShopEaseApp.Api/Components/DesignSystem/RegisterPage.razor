@@ -1,0 +1,45 @@
+@page "/register"
+@attribute [AllowAnonymous]
+
+<div class="flex flex-col items-center justify-center min-h-screen p-4 md:p-8">
+
+    <div class="fixed top-0 right-0 p-lg pointer-events-none opacity-20">
+        <span class="material-symbols-outlined text-[120px] text-tertiary">shopping_basket</span>
+    </div>
+    <div class="fixed bottom-0 left-0 p-lg pointer-events-none opacity-20">
+        <span class="material-symbols-outlined text-[120px] text-secondary">flash_on</span>
+    </div>
+
+    <main class="w-full max-w-[520px] z-10">
+        <header class="text-center mb-md animate-float">
+            <h1 class="font-display-lg-mobile md:font-display-lg
+                       text-display-lg-mobile md:text-display-lg text-primary mb-2
+                       font-bold tracking-tight">EasyShop</h1>
+            <p class="font-body-md text-on-surface-variant italic opacity-80">
+                Energetic Simplicity in every click.
+            </p>
+        </header>
+
+        <RegisterForm OnToggleLogin="GoToLogin" />
+
+        <footer class="mt-xl w-full">
+            <div class="border-t border-outline-variant pt-md flex flex-col md:flex-row justify-between items-center gap-md">
+                <div class="flex items-center gap-2">
+                    <span class="font-headline-md text-primary font-bold">EasyShop</span>
+                    <span class="text-on-surface-variant font-label-sm">© 2026</span>
+                </div>
+                <nav class="flex flex-wrap justify-center gap-gutter">
+                    <a class="font-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy</a>
+                    <a class="font-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Terms</a>
+                    <a class="font-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Cookies</a>
+                </nav>
+            </div>
+        </footer>
+    </main>
+</div>
+
+@code {
+    [Inject] private NavigationManager Nav { get; set; } = null!;
+
+    private void GoToLogin() => Nav.NavigateTo("/login");
+}
