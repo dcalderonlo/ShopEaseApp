@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using ShopEaseApp.Api.Features.Identity.ChangePassword;
 using ShopEaseApp.Api.Infrastructure.Data;
-using ChangePasswordPage = ShopEaseApp.Api.Features.Identity.Components.ChangePassword;
+using ChangePasswordPage = ShopEaseApp.Api.Components.DesignSystem.ChangePasswordPage;
 
 namespace ShopEaseApp.Blazor.Tests;
 
