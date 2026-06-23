@@ -1,4 +1,6 @@
 @page "/auth"
+@page "/login"
+@page "/register"
 @attribute [AllowAnonymous]
 @using ShopEaseApp.Api.Components.DesignSystem.Atoms
 @using ShopEaseApp.Api.Components.DesignSystem.Molecules
@@ -33,6 +35,7 @@
     {
         // Support ?mode=register to open registration view directly
         var uri = new Uri(Navigation.Uri);
+        var path = uri.AbsolutePath;
         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
         _showLogin = query["mode"] != "register";
     }

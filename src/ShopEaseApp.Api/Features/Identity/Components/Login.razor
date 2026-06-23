@@ -34,10 +34,6 @@
         var (success, response) = await Handler.HandleAsync(new LoginRequest(_form.Email, _form.Password));
         if (success && response is not null)
         {
-            // Set the HttpOnly auth cookie. HttpContext is only available during
-            // the initial HTTP request (prerender), not during a SignalR post-back,
-            // so this is best-effort; forceLoad re-requests the destination to pick
-            // up the cookie.
             var http = HttpContextAccessor.HttpContext;
             if (http is not null && !http.Response.HasStarted)
             {
@@ -50,8 +46,6 @@
                 });
             }
 
-            // Forced first-change: route flagged users to the change-password page
-            // instead of the home page.
             if (response.MustChangePassword)
                 Nav.NavigateTo("/change-password", forceLoad: true);
             else

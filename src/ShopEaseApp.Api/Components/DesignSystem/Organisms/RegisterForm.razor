@@ -9,15 +9,15 @@
         <DataAnnotationsValidator />
 
         <FormField Label="Full Name" Id="reg-name" Icon="person"
-                   Placeholder="John Doe" @bind-value="Model.FirstName" @bind-value:event="oninput" />
+                   Placeholder="John Doe" @bind-value="Model.FirstName"  />
 
         <FormField Label="Email Address" Id="reg-email" Icon="mail"
                    Type="email" Placeholder="name@example.com"
-                   @bind-value="Model.Email" @bind-value:event="oninput" />
+                   @bind-value="Model.Email"  />
 
         <FormField Label="Password" Id="reg-password" Icon="lock"
                    Type="password" Placeholder="Create a strong password"
-                   @bind-value="Model.Password" @bind-value:event="oninput" />
+                   @bind-value="Model.Password"  />
 
         <div class="flex items-start gap-sm px-sm pt-sm">
             <input class="mt-1 rounded-sm text-primary focus:ring-primary border-outline-variant"
