@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using ShopEaseApp.Api.Components;
-using ShopEaseApp.Api.Features.Identity.Components;
+using ShopEaseApp.Api.Components.DesignSystem;
 
 namespace ShopEaseApp.Blazor.Tests;
 
@@ -19,9 +19,9 @@ public class LogoutTests
         ctx.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         ctx.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
 
-        ctx.RenderComponent<Logout>();
+        ctx.RenderComponent<LogoutPage>();
 
         var nav = ctx.Services.GetRequiredService<NavigationManager>();
-        Assert.EndsWith("/", nav.Uri);
+        Assert.EndsWith("/login", nav.Uri);
     }
 }

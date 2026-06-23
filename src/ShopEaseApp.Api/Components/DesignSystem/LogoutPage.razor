@@ -1,0 +1,42 @@
+@page "/logout"
+@attribute [AllowAnonymous]
+@using Microsoft.AspNetCore.Http
+
+@* ── Logout page: clear cookie, notify auth, redirect ────────────── *@
+
+<div class="flex flex-col items-center justify-center min-h-screen p-4 md:p-8">
+
+    <main class="w-full max-w-[400px] z-10 text-center">
+        <header class="mb-lg animate-float">
+            <span class="material-symbols-outlined text-[64px] text-primary mb-2">logout</span>
+            <h1 class="font-headline-md text-headline-md text-on-surface">Logging out...</h1>
+            <p class="font-body-md text-on-surface-variant mt-2">
+                You'll be redirected to the login page.
+            </p>
+        </header>
+
+        <div class="glass-card shadow-lg rounded-lg p-md border border-surface-container-high">
+            <span class="material-symbols-outlined text-on-surface-variant animate-spin text-[32px]">
+                progress_activity
+            </span>
+        </div>
+    </main>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        var http = HttpContextAccessor.HttpContext;
+        if (http is not null)
+            http.Response.Cookies.Delete("auth_token");
+
+        if (AuthProvider is ServerAuthenticationStateProvider server)
+            server.NotifyStateChanged();
+
+        Nav.NavigateTo("/login", forceLoad: true);
+    }
+
+    [Inject] private IHttpContextAccessor HttpContextAccessor { get; set; } = null!;
+    [Inject] private AuthenticationStateProvider AuthProvider { get; set; } = null!;
+    [Inject] private NavigationManager Nav { get; set; } = null!;
+}
