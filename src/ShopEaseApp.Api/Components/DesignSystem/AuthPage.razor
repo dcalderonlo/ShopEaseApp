@@ -1,20 +1,30 @@
-@page "/auth"
 @page "/login"
-@page "/register"
 @attribute [AllowAnonymous]
-@using ShopEaseApp.Api.Components.DesignSystem.Atoms
-@using ShopEaseApp.Api.Components.DesignSystem.Molecules
-@using ShopEaseApp.Api.Components.DesignSystem.Organisms
 
-@* ── Background decoration ──────────────────────────────────────── *@
-<div class="vibrant-blob top-[-20%] left-[-10%]"></div>
-<div class="vibrant-blob bottom-[-20%] right-[-10%]"></div>
+@* ── Auth page: login + register toggle, glass-card design ───────── *@
+<div class="flex flex-col items-center justify-center min-h-screen p-4 md:p-8">
 
-@* ── Main container ──────────────────────────────────────────────── *@
-<main class="w-full max-w-[480px] z-10">
-    <BrandHeader />
+    @* Decorative accents *@
+    <div class="fixed top-0 right-0 p-lg pointer-events-none opacity-20">
+        <span class="material-symbols-outlined text-[120px] text-tertiary">shopping_basket</span>
+    </div>
+    <div class="fixed bottom-0 left-0 p-lg pointer-events-none opacity-20">
+        <span class="material-symbols-outlined text-[120px] text-secondary">flash_on</span>
+    </div>
 
-    <AuthCard>
+    <main class="w-full max-w-[520px] z-10">
+
+        @* Brand header *@
+        <header class="text-center mb-md animate-float">
+            <h1 class="font-display-lg-mobile md:font-display-lg
+                       text-display-lg-mobile md:text-display-lg text-primary mb-2
+                       font-bold tracking-tight">EasyShop</h1>
+            <p class="font-body-md text-on-surface-variant italic opacity-80">
+                Energetic Simplicity in every click.
+            </p>
+        </header>
+
+        @* Toggle between forms *@
         @if (_showLogin)
         {
             <LoginForm OnToggleRegister="() => ToggleView(false)" />
@@ -23,27 +33,39 @@
         {
             <RegisterForm OnToggleLogin="() => ToggleView(true)" />
         }
-    </AuthCard>
 
-    <AuthFooter />
-</main>
+        @* Footer *@
+        <footer class="mt-xl w-full">
+            <div class="border-t border-outline-variant pt-md flex flex-col md:flex-row justify-between items-center gap-md">
+                <div class="flex items-center gap-2">
+                    <span class="font-headline-md text-primary font-bold">EasyShop</span>
+                    <span class="text-on-surface-variant font-label-sm">© 2026</span>
+                </div>
+                <nav class="flex flex-wrap justify-center gap-gutter">
+                    <a class="font-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Privacidad</a>
+                    <a class="font-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Términos</a>
+                    <a class="font-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Cookies</a>
+                </nav>
+                <div class="flex gap-md">
+                    <span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">alternate_email</span>
+                    <span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">public</span>
+                </div>
+            </div>
+        </footer>
+    </main>
+</div>
 
 @code {
     private bool _showLogin = true;
 
     protected override void OnInitialized()
     {
-        // Support ?mode=register to open registration view directly
         var uri = new Uri(Navigation.Uri);
-        var path = uri.AbsolutePath;
         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
         _showLogin = query["mode"] != "register";
     }
 
-    private void ToggleView(bool showLogin)
-    {
-        _showLogin = showLogin;
-    }
+    private void ToggleView(bool showLogin) => _showLogin = showLogin;
 
     [Inject] private NavigationManager Navigation { get; set; } = null!;
 }

@@ -1,86 +1,163 @@
-@* Organism: Register form *@
-<div class="space-y-md">
+@* Organism: Register form — glass card style, Spanish UI *@
+<div class="glass-card shadow-lg rounded-lg overflow-hidden p-md md:p-lg border border-surface-container-high">
     <div class="mb-lg">
-        <h2 class="font-headline-md text-headline-md text-on-surface">Create Account</h2>
-        <p class="font-body-md text-on-surface-variant">Join the EasyShop community today.</p>
+        <h2 class="font-headline-md text-headline-md text-on-surface mb-2">Crea tu cuenta</h2>
+        <p class="font-body-md text-on-surface-variant">Únete a nuestra comunidad de compradores inteligentes hoy mismo.</p>
     </div>
 
-    <EditForm Model="Model" OnValidSubmit="HandleSubmit" class="space-y-md">
+    <EditForm Model="Model" OnValidSubmit="HandleSubmit" class="space-y-gutter">
         <DataAnnotationsValidator />
 
-        <FormField Label="Full Name" Id="reg-name" Icon="person"
-                   Placeholder="John Doe" @bind-value="Model.FirstName"  />
+        @* Name Row *@
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+            <div class="flex flex-col gap-xs">
+                <label class="font-label-sm text-label-sm text-on-surface-variant px-1">Nombre</label>
+                <input @bind="Model.FirstName" @bind:event="oninput"
+                       class="w-full p-md bg-surface-container-low border border-outline-variant
+                              rounded-xl focus:ring-2 focus:ring-primary focus:border-primary
+                              transition-all duration-300 outline-none font-body-md text-on-surface"
+                       placeholder="Ej. Juan" type="text" />
+            </div>
+            <div class="flex flex-col gap-xs">
+                <label class="font-label-sm text-label-sm text-on-surface-variant px-1">Apellido</label>
+                <input @bind="Model.LastName" @bind:event="oninput"
+                       class="w-full p-md bg-surface-container-low border border-outline-variant
+                              rounded-xl focus:ring-2 focus:ring-primary focus:border-primary
+                              transition-all duration-300 outline-none font-body-md text-on-surface"
+                       placeholder="Ej. Pérez" type="text" />
+            </div>
+        </div>
 
-        <FormField Label="Email Address" Id="reg-email" Icon="mail"
-                   Type="email" Placeholder="name@example.com"
-                   @bind-value="Model.Email"  />
+        @* Email *@
+        <div class="flex flex-col gap-xs">
+            <label class="font-label-sm text-label-sm text-on-surface-variant px-1">Correo Electrónico</label>
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">mail</span>
+                <input @bind="Model.Email" @bind:event="oninput"
+                       class="w-full pl-12 pr-md py-md bg-surface-container-low border border-outline-variant
+                              rounded-xl focus:ring-2 focus:ring-primary focus:border-primary
+                              transition-all duration-300 outline-none font-body-md text-on-surface"
+                       placeholder="nombre@ejemplo.com" type="email" />
+            </div>
+        </div>
 
-        <FormField Label="Password" Id="reg-password" Icon="lock"
-                   Type="password" Placeholder="Create a strong password"
-                   @bind-value="Model.Password"  />
+        @* Password with toggle *@
+        <div class="flex flex-col gap-xs">
+            <label class="font-label-sm text-label-sm text-on-surface-variant px-1">Contraseña</label>
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">lock</span>
+                <input @bind="Model.Password" @bind:event="oninput"
+                       class="w-full pl-12 pr-12 py-md bg-surface-container-low border border-outline-variant
+                              rounded-xl focus:ring-2 focus:ring-primary focus:border-primary
+                              transition-all duration-300 outline-none font-body-md text-on-surface"
+                       placeholder="Mínimo 6 caracteres" type="@(_showPassword ? "text" : "password")" />
+                <button type="button"
+                        class="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors"
+                        @onclick="() => _showPassword = !_showPassword">
+                    <span class="material-symbols-outlined">@(_showPassword ? "visibility_off" : "visibility")</span>
+                </button>
+            </div>
+        </div>
 
-        <div class="flex items-start gap-sm px-sm pt-sm">
-            <input class="mt-1 rounded-sm text-primary focus:ring-primary border-outline-variant"
-                   id="terms" type="checkbox" @bind="Model.AgreedToTerms" />
-            <label class="font-label-sm text-label-sm text-on-surface-variant" for="terms">
-                I agree to the <a class="text-primary hover:underline" href="#">Terms of Service</a>
-                and <a class="text-primary hover:underline" href="#">Privacy Policy</a>.
+        @* Terms *@
+        <div class="flex items-start gap-3 mt-4">
+            <input @bind="Model.AgreedToTerms"
+                   class="mt-1 rounded text-primary focus:ring-primary-container h-4 w-4" id="terms" type="checkbox" />
+            <label class="font-label-sm text-label-sm text-on-surface-variant leading-tight" for="terms">
+                Al registrarte, aceptas recibir correos electrónicos de EasyShop sobre promociones y actualizaciones.
             </label>
         </div>
 
-        <div class="pt-md">
-            <EaseButton Variant="secondary" Icon="how_to_reg"
-                        OnClick="HandleSubmit">Create Account</EaseButton>
-        </div>
+        @* Submit *@
+        <button type="submit" disabled="@_isSubmitting"
+                class="w-full bg-primary-container text-on-primary-container py-md px-lg rounded-full
+                       font-semibold text-body-lg flex items-center justify-center gap-2
+                       hover:shadow-lg hover:scale-[1.02] active:scale-95
+                       transition-all duration-200 disabled:opacity-80">
+            @if (_isSubmitting)
+            {
+                <span class="material-symbols-outlined animate-spin">progress_activity</span>
+                <span>Procesando...</span>
+            }
+            else if (_success)
+            {
+                <span class="material-symbols-outlined">check_circle</span>
+                <span>¡Cuenta Creada!</span>
+            }
+            else
+            {
+                <span>Registrarse en EasyShop</span>
+                <span class="material-symbols-outlined">arrow_forward</span>
+            }
+        </button>
     </EditForm>
 
     @if (!string.IsNullOrEmpty(Error))
     {
-        <p class="text-error font-body-md text-center">@Error</p>
+        <p class="text-error font-body-md text-center mt-md">@Error</p>
     }
 
-    <p class="text-center font-body-md text-on-surface-variant pt-md">
-        Already have an account?
-        <AuthToggle OnClick="OnToggleLogin">Login</AuthToggle>
-    </p>
+    <div class="mt-lg text-center">
+        <button class="font-body-md text-primary hover:underline transition-colors decoration-2 underline-offset-4"
+                @onclick="OnToggleLogin">
+            Ya tengo una cuenta. Iniciar Sesión
+        </button>
+    </div>
 </div>
 
 @code {
     [Parameter] public EventCallback OnToggleLogin { get; set; }
 
     private string Error = "";
+    private bool _showPassword;
+    private bool _isSubmitting;
+    private bool _success;
     private RegisterFormModel Model = new();
 
     private async Task HandleSubmit()
     {
         if (!Model.AgreedToTerms)
         {
-            Error = "You must agree to the terms.";
+            Error = "Debes aceptar los términos para registrarte.";
             return;
         }
 
         Error = "";
+        _isSubmitting = true;
+        StateHasChanged();
+
         try
         {
             var handler = RegisterHandler;
             var request = new ShopEaseApp.Api.Features.Identity.Register.RegisterRequest(
-                Model.FirstName, "", Model.Email, Model.Password);
+                Model.FirstName, Model.LastName, Model.Email, Model.Password);
             var (success, _, errors) = await handler.HandleAsync(request);
 
             if (success)
-                Navigation.NavigateTo("/auth?mode=login", forceLoad: true);
+            {
+                _success = true;
+                await Task.Delay(1500);
+                Navigation.NavigateTo("/login?mode=login", forceLoad: true);
+            }
             else
+            {
                 Error = string.Join(", ", errors);
+            }
         }
         catch
         {
-            Error = "An error occurred. Please try again.";
+            Error = "Ocurrió un error. Intenta de nuevo.";
+        }
+        finally
+        {
+            _isSubmitting = false;
         }
     }
 
     private class RegisterFormModel
     {
         public string FirstName { get; set; } = "";
+        public string LastName { get; set; } = "";
         public string Email { get; set; } = "";
         public string Password { get; set; } = "";
         public bool AgreedToTerms { get; set; }

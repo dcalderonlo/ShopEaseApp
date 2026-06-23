@@ -1,52 +1,95 @@
-@* Organism: Login form *@
-<div class="space-y-md">
+@* Organism: Login form — glass card style, matches RegisterForm *@
+<div class="glass-card shadow-lg rounded-lg overflow-hidden p-md md:p-lg border border-surface-container-high">
     <div class="mb-lg">
-        <h2 class="font-headline-md text-headline-md text-on-surface">Welcome back</h2>
-        <p class="font-body-md text-on-surface-variant">Please enter your details to sign in.</p>
+        <h2 class="font-headline-md text-headline-md text-on-surface mb-2">Bienvenido de nuevo</h2>
+        <p class="font-body-md text-on-surface-variant">Ingresa tus datos para iniciar sesión.</p>
     </div>
 
-    <EditForm Model="Model" OnValidSubmit="HandleSubmit" class="space-y-md">
+    <EditForm Model="Model" OnValidSubmit="HandleSubmit" class="space-y-gutter">
         <DataAnnotationsValidator />
 
-        <FormField Label="Email Address" Id="email" Icon="mail"
-                   Type="email" Placeholder="name@example.com"
-                   @bind-value="Model.Email" />
-
-        <div class="space-y-xs">
-            <div class="flex justify-between items-center px-sm">
-                <label class="font-label-sm text-label-sm text-on-surface-variant">Password</label>
-                <a class="font-label-sm text-label-sm text-primary hover:underline underline-offset-4"
-                   href="#">Forgot Password?</a>
+        @* Email *@
+        <div class="flex flex-col gap-xs">
+            <label class="font-label-sm text-label-sm text-on-surface-variant px-1">Correo Electrónico</label>
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">mail</span>
+                <input @bind="Model.Email" @bind:event="oninput"
+                       class="w-full pl-12 pr-md py-md bg-surface-container-low border border-outline-variant
+                              rounded-xl focus:ring-2 focus:ring-primary focus:border-primary
+                              transition-all duration-300 outline-none font-body-md text-on-surface"
+                       placeholder="nombre@ejemplo.com" type="email" />
             </div>
-            <EaseInput Icon="lock" type="password" placeholder="••••••••"
-                       @bind-value="Model.Password" @bind-value:event="oninput" />
         </div>
 
-        <div class="pt-md">
-            <EaseButton Icon="arrow_forward" OnClick="HandleSubmit">Login to EasyShop</EaseButton>
+        @* Password with toggle *@
+        <div class="flex flex-col gap-xs">
+            <div class="flex justify-between items-center px-1">
+                <label class="font-label-sm text-label-sm text-on-surface-variant">Contraseña</label>
+                <a class="font-label-sm text-label-sm text-primary hover:underline underline-offset-4" href="#">
+                    ¿Olvidaste tu contraseña?
+                </a>
+            </div>
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">lock</span>
+                <input @bind="Model.Password" @bind:event="oninput"
+                       class="w-full pl-12 pr-12 py-md bg-surface-container-low border border-outline-variant
+                              rounded-xl focus:ring-2 focus:ring-primary focus:border-primary
+                              transition-all duration-300 outline-none font-body-md text-on-surface"
+                       placeholder="••••••••" type="@(_showPassword ? "text" : "password")" />
+                <button type="button"
+                        class="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors"
+                        @onclick="() => _showPassword = !_showPassword">
+                    <span class="material-symbols-outlined">@(_showPassword ? "visibility_off" : "visibility")</span>
+                </button>
+            </div>
         </div>
+
+        @* Submit *@
+        <button type="submit" disabled="@_isSubmitting"
+                class="w-full bg-primary text-on-primary py-md px-lg rounded-full
+                       font-semibold text-body-lg flex items-center justify-center gap-2
+                       hover:shadow-lg hover:scale-[1.02] active:scale-95
+                       transition-all duration-200 disabled:opacity-80">
+            @if (_isSubmitting)
+            {
+                <span class="material-symbols-outlined animate-spin">progress_activity</span>
+                <span>Ingresando...</span>
+            }
+            else
+            {
+                <span>Iniciar Sesión</span>
+                <span class="material-symbols-outlined">arrow_forward</span>
+            }
+        </button>
     </EditForm>
 
     @if (!string.IsNullOrEmpty(Error))
     {
-        <p class="text-error font-body-md text-center">@Error</p>
+        <p class="text-error font-body-md text-center mt-md">@Error</p>
     }
 
-    <p class="text-center font-body-md text-on-surface-variant pt-md">
-        Don't have an account?
-        <AuthToggle OnClick="OnToggleRegister">Register</AuthToggle>
-    </p>
+    <div class="mt-lg text-center">
+        <button class="font-body-md text-primary hover:underline transition-colors decoration-2 underline-offset-4"
+                @onclick="OnToggleRegister">
+            ¿No tienes cuenta? Regístrate
+        </button>
+    </div>
 </div>
 
 @code {
     [Parameter] public EventCallback OnToggleRegister { get; set; }
 
     private string Error = "";
+    private bool _showPassword;
+    private bool _isSubmitting;
     private LoginFormModel Model = new();
 
     private async Task HandleSubmit()
     {
         Error = "";
+        _isSubmitting = true;
+        StateHasChanged();
+
         try
         {
             var handler = LoginHandler;
@@ -62,12 +105,16 @@
             }
             else
             {
-                Error = "Invalid credentials.";
+                Error = "Credenciales inválidas.";
             }
         }
         catch
         {
-            Error = "An error occurred. Please try again.";
+            Error = "Ocurrió un error. Intenta de nuevo.";
+        }
+        finally
+        {
+            _isSubmitting = false;
         }
     }
 

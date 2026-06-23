@@ -6,28 +6,26 @@
 
 /* ── Base ─────────────────────────────────────────────────────────── */
 body {
-    background-color: #fcf9f8;
+    font-family: 'Montserrat', sans-serif;
+    background: radial-gradient(circle at top left, #dde1ff 0%, #fcf9f8 40%, #ffdad5 100%);
+    min-height: 100vh;
     overflow-x: hidden;
 }
 
-/* ── Animated background blobs ────────────────────────────────────── */
-.vibrant-blob {
-    position: absolute;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(46, 91, 255, 0.15) 0%, rgba(253, 125, 108, 0.05) 100%);
-    filter: blur(80px);
-    border-radius: 50%;
-    z-index: -1;
-    animation: float 20s infinite alternate ease-in-out;
+/* ── Glass card effect ────────────────────────────────────────────── */
+.glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* ── Floating animation ───────────────────────────────────────────── */
+.animate-float {
+    animation: float 6s ease-in-out infinite;
 }
 
 @keyframes float {
-    0% { transform: translate(-10%, -10%) scale(1); }
-    100% { transform: translate(10%, 10%) scale(1.1); }
-}
-
-/* ── Auth card transition ─────────────────────────────────────────── */
-.form-transition {
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
 }
