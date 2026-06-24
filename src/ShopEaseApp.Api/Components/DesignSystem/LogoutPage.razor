@@ -1,8 +1,7 @@
 @page "/logout"
 @attribute [AllowAnonymous]
-@using Microsoft.AspNetCore.Http
 
-@* ── Logout page: clear cookie, notify auth, redirect ────────────── *@
+@* ── Logout page: redirect to cookie-clear endpoint ───────────────── *@
 
 <div class="flex flex-col items-center justify-center min-h-screen p-4 md:p-8">
 
@@ -26,17 +25,10 @@
 @code {
     protected override void OnInitialized()
     {
-        var http = HttpContextAccessor.HttpContext;
-        if (http is not null)
-            http.Response.Cookies.Delete("auth_token");
-
-        if (AuthProvider is ServerAuthenticationStateProvider server)
-            server.NotifyStateChanged();
-
-        Nav.NavigateTo("/login", forceLoad: true);
+        // Blazor Server can't modify HttpContext cookies.
+        // Navigate to a dedicated HTTP endpoint that clears the cookie.
+        Nav.NavigateTo("/auth/clear-cookie?redirect=" + Uri.EscapeDataString("/login"), forceLoad: true);
     }
 
-    [Inject] private IHttpContextAccessor HttpContextAccessor { get; set; } = null!;
-    [Inject] private AuthenticationStateProvider AuthProvider { get; set; } = null!;
     [Inject] private NavigationManager Nav { get; set; } = null!;
 }

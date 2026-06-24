@@ -192,6 +192,13 @@ app.MapGet("/auth/set-cookie", (string token, string redirect, HttpContext http)
     return Results.Redirect(redirect);
 }).AllowAnonymous();
 
+// ── Cookie-clear helper ─────────────────────────────────────────────────────────
+app.MapGet("/auth/clear-cookie", (string redirect, HttpContext http) =>
+{
+    http.Response.Cookies.Delete("auth_token");
+    return Results.Redirect(redirect);
+}).AllowAnonymous();
+
 // ── Blazor Server storefront (registered AFTER API endpoints so /api/* wins) ─
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
