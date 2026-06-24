@@ -1,0 +1,51 @@
+@* Organism: Admin sidebar navigation panel *@
+<nav class="hidden lg:flex flex-col h-screen fixed left-0 top-0 py-md px-sm z-40
+            bg-surface-container w-64 shadow-md transition-all bottom-0">
+    <div class="mb-xl px-sm">
+        <h1 class="font-display-lg-mobile text-display-lg-mobile font-bold text-primary mb-xs">Admin Panel</h1>
+        <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Stock Management</p>
+    </div>
+
+    <div class="flex-1 space-y-2">
+        <AdminNavLink Href="/admin" Icon="dashboard" Label="Dashboard"
+                      Active="@(CurrentPage == "dashboard")" />
+        <AdminNavLink Href="/admin" Icon="inventory_2" Label="Inventory"
+                      Active="@(CurrentPage == "inventory")" />
+        <AdminNavLink Href="/admin" Icon="category" Label="Categories"
+                      Active="@(CurrentPage == "categories")" />
+        <AdminNavLink Href="#" Icon="settings" Label="Settings" />
+    </div>
+
+    <div class="mt-auto px-sm pt-md border-t border-outline-variant/30">
+        <a href="/admin/products/create"
+           class="w-full bg-primary text-on-primary py-sm rounded-xl font-bold
+                  flex items-center justify-center gap-xs
+                  hover:opacity-90 transition-all active:scale-95
+                  shadow-lg shadow-primary/20">
+            <span class="material-symbols-outlined text-[20px]">add</span>
+            <span class="font-label-sm text-label-sm">Add Product</span>
+        </a>
+        <div class="mt-md flex items-center gap-sm">
+            <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary">person</span>
+            </div>
+            <div class="overflow-hidden">
+                <p class="font-label-sm text-label-sm font-bold truncate">Admin</p>
+                <p class="text-[10px] text-on-surface-variant uppercase truncate">Store Manager</p>
+            </div>
+        </div>
+    </div>
+</nav>
+
+@* Mobile top bar *@
+<header class="lg:hidden fixed top-0 left-0 w-full z-50 flex justify-between items-center
+                px-margin-mobile h-20 bg-surface/80 backdrop-blur-md border-b border-outline-variant">
+    <span class="font-display-lg-mobile text-display-lg-mobile font-bold text-primary">EasyShop</span>
+    <button class="p-2 text-on-surface">
+        <span class="material-symbols-outlined">menu</span>
+    </button>
+</header>
+
+@code {
+    [Parameter] public string CurrentPage { get; set; } = "inventory";
+}

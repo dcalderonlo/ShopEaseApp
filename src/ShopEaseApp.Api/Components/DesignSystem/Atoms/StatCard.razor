@@ -1,0 +1,25 @@
+@* Atom: Stat card for admin dashboard metrics *@
+<div class="raised-card bg-surface p-md rounded-lg border border-outline-variant/30 flex flex-col justify-between @Class">
+    <span class="text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider mb-sm">@Label</span>
+    <div class="flex items-end justify-between">
+        <span class="font-display-lg-mobile text-display-lg-mobile @ValueClass">@Value</span>
+        @if (!string.IsNullOrEmpty(Badge))
+        {
+            <span class="px-sm py-1 rounded-full text-[10px] font-bold @BadgeClass">@Badge</span>
+        }
+        else if (!string.IsNullOrEmpty(ChildContent?.ToString()))
+        {
+            @ChildContent
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public string? Badge { get; set; }
+    [Parameter] public string ValueClass { get; set; } = "text-primary";
+    [Parameter] public string BadgeClass { get; set; } = "";
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

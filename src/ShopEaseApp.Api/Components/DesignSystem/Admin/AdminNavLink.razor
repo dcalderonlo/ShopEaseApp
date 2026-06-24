@@ -1,0 +1,17 @@
+@* Molecule: Admin sidebar navigation link *@
+<a href="@Href"
+   class="flex items-center gap-md px-md py-sm rounded-xl transition-all group
+          @(Active
+              ? "bg-primary-container text-on-primary-container font-bold scale-98 active-glow"
+              : "text-on-surface-variant hover:bg-surface-variant/50")">
+    <span class="material-symbols-outlined"
+          style="@(Active ? "font-variation-settings: 'FILL' 1;" : "")">@Icon</span>
+    <span class="font-label-sm text-label-sm">@Label</span>
+</a>
+
+@code {
+    [Parameter] public string Href { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public bool Active { get; set; }
+}

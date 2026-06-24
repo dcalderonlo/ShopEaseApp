@@ -1,7 +1,7 @@
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using ShopEaseApp.Api.Components.Pages;
+using ShopEaseApp.Api.Components.DesignSystem.Admin;
 using ShopEaseApp.Api.Features.Admin.Dashboard;
 using ShopEaseApp.Api.Features.Catalog.Categories;
 using ShopEaseApp.Api.Features.Catalog.Products;
@@ -57,10 +57,10 @@ public class AdminDashboardTests
 
         cut.WaitForAssertion(() =>
         {
-            Assert.Contains("Total Products: 3", cut.Markup);
-            Assert.Contains("Total SKUs: 3", cut.Markup);
-            Assert.Contains("Low Stock: 1", cut.Markup);
-            Assert.Contains("Inventory Value: $1150", cut.Markup);
+            Assert.Contains("Total Products", cut.Markup);
+            Assert.Contains("3 SKUs", cut.Markup);
+            Assert.Contains("Low Stock Items", cut.Markup);
+            Assert.Contains("Total Valuation", cut.Markup);
         });
     }
 

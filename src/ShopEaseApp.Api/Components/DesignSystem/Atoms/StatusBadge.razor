@@ -1,0 +1,14 @@
+@* Atom: Status badge pill — In Stock / Low Stock / Out of Stock *@
+<span class="px-md py-1 rounded-full text-[12px] font-bold @GetBadgeClass()">@Label</span>
+
+@code {
+    [Parameter] public string Label { get; set; } = "";
+
+    private string GetBadgeClass() => Label switch
+    {
+        "In Stock" => "bg-tertiary-container/10 text-tertiary-container",
+        "Low Stock" => "bg-secondary-container/10 text-secondary-container",
+        "Out of Stock" => "bg-error-container text-on-error-container",
+        _ => "bg-surface-container text-on-surface-variant"
+    };
+}

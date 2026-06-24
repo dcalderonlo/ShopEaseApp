@@ -1,0 +1,14 @@
+@* Atom: Filter chip button for admin dashboard *@
+<button @onclick="OnClick"
+        class="px-md py-xs rounded-full font-label-sm text-label-sm transition-all
+               @(Active
+                   ? "bg-primary text-on-primary"
+                   : "bg-tertiary-container/10 text-tertiary-container border border-tertiary-container/20 hover:bg-tertiary-container hover:text-on-tertiary")">
+    @ChildContent
+</button>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool Active { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+}

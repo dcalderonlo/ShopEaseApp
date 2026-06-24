@@ -1,0 +1,99 @@
+@* Organism: Products table with search, status badges, actions, pagination *@
+<div class="bg-surface rounded-lg raised-card border border-outline-variant/30 overflow-hidden">
+
+    @* Search & actions bar *@
+    <div class="p-md border-b border-outline-variant/20 flex flex-col md:flex-row md:items-center justify-between gap-md">
+        <div class="relative max-w-md w-full">
+            <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline">search</span>
+            <input @bind="SearchTerm" @bind:event="oninput"
+                   class="w-full pl-xl pr-md py-sm bg-surface-container-low border-none
+                          rounded-xl font-body-md focus:ring-2 focus:ring-primary transition-all"
+                   placeholder="Search products, categories..." type="text" />
+        </div>
+        <div class="flex items-center gap-sm">
+            <button class="p-sm text-on-surface-variant hover:bg-surface-variant rounded-xl transition-all">
+                <span class="material-symbols-outlined">filter_list</span>
+            </button>
+        </div>
+    </div>
+
+    @* Table *@
+    <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-surface-container-low">
+                    <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Product Name</th>
+                    <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Category</th>
+                    <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Stock Level</th>
+                    <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Status</th>
+                    <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-right">Price</th>
+                    <th class="px-md py-sm font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant/20">
+                @foreach (var item in FilteredProducts)
+                {
+                    <tr class="group hover:bg-surface-container-low/50 transition-colors">
+                        <td class="px-md py-md font-bold text-on-surface">@item.ProductName</td>
+                        <td class="px-md py-md text-on-surface-variant">@item.CategoryName</td>
+                        <td class="px-md py-md font-bold @(item.Status == "Low Stock" ? "text-secondary" : "")">@item.Stock</td>
+                        <td class="px-md py-md">
+                            <StatusBadge Label="@item.Status" />
+                        </td>
+                        <td class="px-md py-md text-right font-bold text-primary">$@item.Price.ToString("F2")</td>
+                        <td class="px-md py-md">
+                            <div class="flex justify-center gap-xs">
+                <button class="p-xs text-on-surface-variant hover:text-primary transition-all active:scale-90"
+                        @onclick="() => OnEditItem(item)">
+                    <span class="material-symbols-outlined">edit</span>
+                </button>
+                <button class="p-xs text-on-surface-variant hover:text-error transition-all active:scale-90"
+                        @onclick="() => OnDeleteItem(item)">
+                    <span class="material-symbols-outlined">delete</span>
+                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @* Pagination *@
+    <div class="p-md bg-surface-container-low flex items-center justify-between">
+        <span class="font-label-sm text-label-sm text-on-surface-variant">
+            Showing @FilteredProducts.Count of @TotalCount entries
+        </span>
+    </div>
+</div>
+
+@code {
+    [Parameter] public IEnumerable<AdminProductItem> Items { get; set; } = [];
+    [Parameter] public EventCallback<AdminProductItem> OnEdit { get; set; }
+    [Parameter] public EventCallback<AdminProductItem> OnDelete { get; set; }
+
+    private string SearchTerm { get; set; } = "";
+
+    private List<AdminProductItem> FilteredProducts =>
+        string.IsNullOrWhiteSpace(SearchTerm)
+            ? Items.ToList()
+            : Items.Where(p =>
+                p.ProductName.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)
+                || p.CategoryName.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    private int TotalCount => Items.Count();
+
+    private void OnEditItem(AdminProductItem item) => OnEdit.InvokeAsync(item);
+    private void OnDeleteItem(AdminProductItem item) => OnDelete.InvokeAsync(item);
+
+    public class AdminProductItem
+    {
+        public int ProductId { get; set; }
+        public int VariantId { get; set; }
+        public string ProductName { get; set; } = "";
+        public string CategoryName { get; set; } = "";
+        public int Stock { get; set; }
+        public string Status { get; set; } = "";
+        public decimal Price { get; set; }
+    }
+}

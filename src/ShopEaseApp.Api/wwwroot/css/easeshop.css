@@ -29,3 +29,16 @@ body {
     50% { transform: translateY(-10px); }
     100% { transform: translateY(0px); }
 }
+
+/* ── Admin dashboard styles ───────────────────────────────────────── */
+.raised-card {
+    box-shadow: 0 4px 8px rgba(46, 91, 255, 0.06);
+}
+
+.active-glow {
+    box-shadow: 0 0 15px rgba(46, 91, 255, 0.15);
+}
+
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #c4c5d9; border-radius: 10px; }
