@@ -178,6 +178,20 @@ app.UseOutputCache();
 // ── Register all feature endpoints ───────────────────────────────────────────
 app.UseEndpointDefinitions();
 
+// ── Cookie-set helper (Blazor Server can't set cookies via HttpContext) ────────
+app.MapGet("/auth/set-cookie", (string token, string redirect, HttpContext http) =>
+{
+    var isDev = app.Environment.IsDevelopment();
+    http.Response.Cookies.Append("auth_token", token, new CookieOptions
+    {
+        HttpOnly = true,
+        Secure = !isDev,
+        SameSite = SameSiteMode.Lax,
+        Expires = DateTime.UtcNow.AddHours(1)
+    });
+    return Results.Redirect(redirect);
+}).AllowAnonymous();
+
 // ── Blazor Server storefront (registered AFTER API endpoints so /api/* wins) ─
 app.MapStaticAssets();
 app.MapRazorComponents<App>()

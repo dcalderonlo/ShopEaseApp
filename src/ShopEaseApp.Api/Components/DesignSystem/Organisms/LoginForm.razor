@@ -1,7 +1,4 @@
 @* Organism: Login form — glass card style, matches RegisterForm *@
-@using Microsoft.AspNetCore.Http
-@inject IHttpContextAccessor HttpContextAccessor
-@inject IWebHostEnvironment Env
 <div class="glass-card shadow-lg rounded-lg overflow-hidden p-md md:p-lg border border-surface-container-high">
     <div class="mb-lg">
         <h2 class="font-headline-md text-headline-md text-on-surface mb-2">Bienvenido de nuevo</h2>
@@ -100,24 +97,13 @@
 
             if (success && response is not null)
             {
-                // Set the HttpOnly auth cookie so the next request is authenticated.
-                // HttpContext is available during the initial HTTP request (prerender).
-                var http = HttpContextAccessor.HttpContext;
-                if (http is not null && !http.Response.HasStarted)
-                {
-                    http.Response.Cookies.Append("auth_token", response.Token, new CookieOptions
-                    {
-                        HttpOnly = true,
-                        Secure = !Env.IsDevelopment(),
-                        SameSite = SameSiteMode.Lax,
-                        Expires = response.ExpiresAt
-                    });
-                }
-
-                if (response.MustChangePassword)
-                    Navigation.NavigateTo("/change-password", forceLoad: true);
-                else
-                    Navigation.NavigateTo("/", forceLoad: true);
+                // Navigate to cookie-set helper — Blazor Server can't set HttpContext cookies.
+                // The endpoint sets the auth_token cookie then redirects to the target page.
+                var destination = response.MustChangePassword ? "/change-password" : "/";
+                var encodedToken = Uri.EscapeDataString(response.Token);
+                Navigation.NavigateTo(
+                    $"/auth/set-cookie?token={encodedToken}&redirect={Uri.EscapeDataString(destination)}",
+                    forceLoad: true);
             }
             else
             {
