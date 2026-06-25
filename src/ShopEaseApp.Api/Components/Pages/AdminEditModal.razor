@@ -255,7 +255,7 @@
         _isUploading = true;
         StateHasChanged();
 
-        var uploadsDir = Path.Combine(Env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "uploads");
+        var uploadsDir = Path.GetFullPath(Path.Combine(Env.WebRootPath ?? "wwwroot", "uploads"));
         Directory.CreateDirectory(uploadsDir);
 
         var fileName = $"{Guid.NewGuid()}{ext}";
