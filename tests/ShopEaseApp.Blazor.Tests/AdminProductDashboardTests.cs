@@ -52,7 +52,7 @@ public class AdminDashboardTests
         RegisterModalDependencies(ctx);
         ctx.Services.AddScoped(_ => CreateHandlerMock().Object);
 
-        var cut = ctx.RenderWithAuth<AdminProductDashboard>(
+        var cut = ctx.RenderWithAuth<AdminProduct>(
             TestHelpers.Authenticated("admin1", "admin@test", "Admin"));
 
         cut.WaitForAssertion(() =>
@@ -73,7 +73,7 @@ public class AdminDashboardTests
         RegisterModalDependencies(ctx);
         ctx.Services.AddScoped(_ => CreateHandlerMock().Object);
 
-        var cut = ctx.RenderWithAuth<AdminProductDashboard>(
+        var cut = ctx.RenderWithAuth<AdminProduct>(
             TestHelpers.Authenticated("admin1", "admin@test", "Admin"));
 
         // Initially all three products render (identified by distinct product names)
