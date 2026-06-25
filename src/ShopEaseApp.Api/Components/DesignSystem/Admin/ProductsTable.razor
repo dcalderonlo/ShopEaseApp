@@ -1,4 +1,5 @@
 @* Organism: Products table with search, status badges, actions, pagination *@
+@using ShopEaseApp.Api.Features.Admin.Dashboard
 <div class="bg-surface rounded-lg raised-card border border-outline-variant/30 overflow-hidden">
 
     @* Search & actions bar *@
@@ -83,22 +84,11 @@
         string.IsNullOrWhiteSpace(SearchTerm)
             ? Items.ToList()
             : Items.Where(p =>
-                p.ProductName.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)
-                || p.CategoryName.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+                (p.ProductName?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (p.CategoryName?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false)).ToList();
 
     private int TotalCount => Items.Count();
 
     private void OnEditItem(AdminProductItem item) => OnEdit.InvokeAsync(item);
     private void OnDeleteItem(AdminProductItem item) => OnDelete.InvokeAsync(item);
-
-    public class AdminProductItem
-    {
-        public int ProductId { get; set; }
-        public int VariantId { get; set; }
-        public string ProductName { get; set; } = "";
-        public string CategoryName { get; set; } = "";
-        public int Stock { get; set; }
-        public string Status { get; set; } = "";
-        public decimal Price { get; set; }
-    }
 }

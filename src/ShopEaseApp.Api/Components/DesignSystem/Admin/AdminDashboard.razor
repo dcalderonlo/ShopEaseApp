@@ -72,7 +72,7 @@
     private string LowStockCount => _metrics?.LowStockItems.ToString() ?? "...";
     private string InventoryVal => _metrics is not null ? $"${_metrics.InventoryValue:N0}" : "...";
 
-    private IEnumerable<ProductsTable.AdminProductItem> _tableItems =>
+    private IEnumerable<AdminProductItem> _tableItems =>
         _adminProducts.Select(MapToTableItem);
 
     private bool _showEditModal;
@@ -93,25 +93,17 @@
     private void FilterInStock() { _statusFilter = "In Stock"; InvokeAsync(RefreshData); }
     private void FilterLowStock() { _statusFilter = "Low Stock"; InvokeAsync(RefreshData); }
 
-    private static ProductsTable.AdminProductItem MapToTableItem(AdminProductResponse p) => new()
-    {
-        ProductId = p.ProductId,
-        VariantId = p.VariantId,
-        ProductName = p.ProductName,
-        CategoryName = p.CategoryName,
-        Stock = p.Stock,
-        Status = p.Status,
-        Price = p.Price
-    };
+    private static AdminProductItem MapToTableItem(AdminProductResponse p) =>
+        new(p.ProductId, p.VariantId, p.ProductName, p.CategoryName, p.Stock, p.Status, p.Price);
 
-    private void OpenEditModal(ProductsTable.AdminProductItem item)
+    private void OpenEditModal(AdminProductItem item)
     {
         _editProduct = _adminProducts.FirstOrDefault(p => p.ProductId == item.ProductId && p.VariantId == item.VariantId);
         _showEditModal = true;
         StateHasChanged();
     }
 
-    private void OpenDeleteModal(ProductsTable.AdminProductItem item)
+    private void OpenDeleteModal(AdminProductItem item)
     {
         _deleteProduct = _adminProducts.FirstOrDefault(p => p.ProductId == item.ProductId && p.VariantId == item.VariantId);
         _showDeleteModal = true;

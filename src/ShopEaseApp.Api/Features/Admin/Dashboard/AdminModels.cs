@@ -14,5 +14,22 @@ public record AdminProductResponse(
     string VariantName,
     int Stock,
     int MinimumStockLevel,
-    string Status,       // "In Stock" | "Low Stock" | "Out of Stock"
+    string Status,
     decimal Price);
+
+/// <summary>DTO for rendering a product row in admin tables.</summary>
+public record AdminProductItem(
+    int ProductId,
+    int VariantId,
+    string ProductName,
+    string CategoryName,
+    int Stock,
+    string Status,
+    decimal Price);
+
+/// <summary>DTO for rendering a category row in admin tables.</summary>
+public record AdminCategoryItem(
+    int Id,
+    string Name,
+    string? Description,
+    int ProductCount);
