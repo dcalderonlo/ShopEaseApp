@@ -33,6 +33,17 @@
             </StatCard>
         </div>
 
+        @* Add Product button *@
+        <div class="flex justify-end mb-md">
+            <button class="h-12 px-md bg-primary text-on-primary rounded-full shadow-lg
+                           flex items-center justify-center gap-sm
+                           active:scale-95 transition-transform hover:opacity-90"
+                    @onclick="AddProduct">
+                <span class="material-symbols-outlined text-[24px]">add</span>
+                <span class="font-label-sm text-label-sm">Add New Product</span>
+            </button>
+        </div>
+
         <ProductsTable Items="@_tableItems.ToList()"
                        OnEdit="OpenEditModal" OnDelete="OpenDeleteModal" />
 
@@ -111,6 +122,13 @@
     {
         _showEditModal = _showDeleteModal = false;
         _editProduct = _deleteProduct = null;
+        StateHasChanged();
+    }
+
+    private void AddProduct()
+    {
+        _editProduct = null; // null = create mode
+        _showEditModal = true;
         StateHasChanged();
     }
 
