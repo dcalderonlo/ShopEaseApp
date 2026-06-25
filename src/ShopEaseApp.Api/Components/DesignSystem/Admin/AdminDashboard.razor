@@ -53,7 +53,7 @@
     </div>
 </main>
 
-@if (_showEditModal && _editProduct != null)
+@if (_showEditModal)
 {
     <AdminEditModal Product="@_editProduct" Visible="true" OnClose="CloseModals" OnSaved="RefreshData" />
 }
