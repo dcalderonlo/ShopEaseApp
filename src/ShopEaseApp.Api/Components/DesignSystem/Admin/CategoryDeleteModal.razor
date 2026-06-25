@@ -1,0 +1,39 @@
+@* Organism: Category delete confirmation modal — glass-card *@
+@if (Visible && Category is not null)
+{
+    <div class="fixed inset-0 z-[100] bg-surface/90 backdrop-blur-sm flex items-center justify-center p-4"
+         @onclick="() => OnClose.InvokeAsync()">
+        <div class="w-full max-w-sm glass-card rounded-xl shadow-xl border border-outline-variant/30 p-lg"
+             @onclick:stopPropagation="true">
+            <div class="text-center">
+                <span class="material-symbols-outlined text-[48px] text-error mb-md">warning</span>
+                <h3 class="font-headline-md text-headline-md text-on-surface mb-sm">Delete Category</h3>
+                <p class="font-body-md text-on-surface-variant mb-md">
+                    Are you sure you want to delete <strong>@Category.Name</strong>?
+                </p>
+                @if (Category.ProductCount > 0)
+                {
+                    <p class="text-error font-label-sm text-label-sm mb-md">
+                        This category has @Category.ProductCount product(s). Remove them first.
+                    </p>
+                }
+                <div class="flex gap-sm justify-center pt-md border-t border-outline-variant">
+                    <button class="px-md py-sm rounded-xl font-body-md text-on-surface-variant bg-surface-container-low border border-outline-variant"
+                            @onclick="() => OnClose.InvokeAsync()">Cancel</button>
+                    <button class="px-md py-sm rounded-xl font-body-md text-on-primary bg-error hover:bg-error/90"
+                            @onclick="() => OnConfirm.InvokeAsync(Category)"
+                            disabled="@(Category.ProductCount > 0)">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public AdminCategoryItem? Category { get; set; }
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<AdminCategoryItem> OnConfirm { get; set; }
+}

@@ -41,11 +41,17 @@
                    OnClose="() => _showModal = false"
                    OnCreate="HandleCreate" OnUpdate="HandleUpdate" />
 
+<CategoryDeleteModal Category="@_deletingCategory" Visible="@_showDeleteModal"
+                     OnClose="() => _showDeleteModal = false"
+                     OnConfirm="HandleDeleteConfirmed" />
+
 @code {
     private List<AdminCategoryItem> _categories = [];
     private int _totalProducts => _categories.Sum(c => c.ProductCount);
     private bool _showModal;
+    private bool _showDeleteModal;
     private AdminCategoryItem? _editingCategory;
+    private AdminCategoryItem? _deletingCategory;
 
     protected override async Task OnInitializedAsync() => await LoadData();
 
@@ -57,9 +63,16 @@
 
     private void EditCategory(AdminCategoryItem cat) { _editingCategory = cat; _showModal = true; }
 
-    private async Task DeleteCategory(AdminCategoryItem cat)
+    private void DeleteCategory(AdminCategoryItem cat)
+    {
+        _deletingCategory = cat;
+        _showDeleteModal = true;
+    }
+
+    private async Task HandleDeleteConfirmed(AdminCategoryItem cat)
     {
         await CatHandler.DeleteAsync(cat.Id);
+        _showDeleteModal = false;
         await LoadData();
     }
 
