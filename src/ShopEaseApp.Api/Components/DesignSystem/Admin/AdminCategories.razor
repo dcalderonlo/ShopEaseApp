@@ -51,8 +51,7 @@
 
     private async Task LoadData()
     {
-        _categories = (await CatHandler.GetAllAsync())
-            .Select(c => new AdminCategoryItem(c.Id, c.Name, c.Description, 0)).ToList();
+        _categories = await CatHandler.GetCategoriesAsync();
         StateHasChanged();
     }
 

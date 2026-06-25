@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ShopEaseApp.Api.Domain;
+using ShopEaseApp.Api.Features.Admin.Dashboard;
 using ShopEaseApp.Api.Infrastructure.Data;
 
 namespace ShopEaseApp.Api.Features.Catalog.Categories;
@@ -22,6 +23,12 @@ public class CategoryHandler(AppDbContext db)
             .Where(c => c.Id == id)
             .Select(c => new CategoryResponse(c.Id, c.Name, c.Description))
             .FirstOrDefaultAsync();
+
+    public async Task<List<AdminCategoryItem>> GetCategoriesAsync() =>
+        await _db.Categories
+            .AsNoTracking()
+            .Select(c => new AdminCategoryItem(c.Id, c.Name, c.Description, c.Products.Count))
+            .ToListAsync();
 
     // ── Commands ──────────────────────────────────────────────────────────────
 
