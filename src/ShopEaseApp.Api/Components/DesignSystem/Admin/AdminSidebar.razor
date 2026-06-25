@@ -17,14 +17,21 @@
     </div>
 
     <div class="mt-auto px-sm pt-md border-t border-outline-variant/30">
-        <div class="mt-md flex items-center gap-sm">
-            <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
-                <span class="material-symbols-outlined text-primary">person</span>
+        <div class="mt-md flex items-center gap-sm justify-between">
+            <div class="flex items-center gap-sm">
+                <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary">person</span>
+                </div>
+                <div class="overflow-hidden">
+                    <p class="font-label-sm text-label-sm font-bold truncate">Admin</p>
+                    <p class="text-[10px] text-on-surface-variant uppercase truncate">Store Manager</p>
+                </div>
             </div>
-            <div class="overflow-hidden">
-                <p class="font-label-sm text-label-sm font-bold truncate">Admin</p>
-                <p class="text-[10px] text-on-surface-variant uppercase truncate">Store Manager</p>
-            </div>
+            <a href="/logout"
+               class="p-2 text-on-surface-variant hover:text-error hover:bg-error-container/10 rounded-full transition-all"
+               title="Logout">
+                <span class="material-symbols-outlined">logout</span>
+            </a>
         </div>
     </div>
 </nav>

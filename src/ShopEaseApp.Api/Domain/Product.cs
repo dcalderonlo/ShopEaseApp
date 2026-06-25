@@ -7,6 +7,6 @@ public class Product
     public string? Description { get; set; }
     public int CategoryId { get; set; }
     public Category Category { get; set; } = null!;
-    public ICollection<string> ImageUrls { get; set; } = new List<string>();
-    public ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
+    public ICollection<string> ImageUrls { get; set; } = [];
+    public ICollection<ProductVariant> Variants { get; set; } = [];
 }

@@ -1,32 +1,127 @@
 @inject ProductHandler Products
 @inject CategoryHandler Categories
 
-@if (Visible && Product is not null)
+@if (Visible)
 {
-    <div class="modal-overlay">
-        <div class="modal">
-            <h3>Edit Product</h3>
-            <p>Editing: <strong>@Product.ProductName</strong></p>
+    <div class="fixed inset-0 z-[100] bg-surface/90 backdrop-blur-sm flex items-center justify-center p-4"
+         @onclick="Cancel">
+        <div class="w-full max-w-5xl max-h-[90vh] overflow-y-auto glass-card rounded-xl shadow-xl border border-outline-variant/30"
+             @onclick:stopPropagation="true">
 
-            <label>Name</label>
-            <input @bind="_name" />
+            <div class="p-lg">
+                <div class="flex items-center justify-between mb-lg">
+                    <div class="space-y-xs">
+                        <h2 class="font-display-lg text-display-lg-mobile md:font-display-lg text-on-surface">
+                            @(Product is null ? "Create New Product" : "Edit Product")
+                        </h2>
+                        <p class="text-on-surface-variant font-body-md opacity-70">
+                            @(Product is null ? "Define a new offering for your catalog." : $"Editing: {Product.ProductName}")
+                        </p>
+                    </div>
+                    <button class="p-2 text-on-surface-variant hover:text-error rounded-full transition-all"
+                            @onclick="Cancel">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
 
-            <label>Description</label>
-            <textarea @bind="_description"></textarea>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+                    @* Left column: Main details *@
+                    <div class="lg:col-span-2 space-y-gutter">
+                        <div class="bg-surface-container-lowest p-md rounded-lg shadow-sm space-y-md">
+                            <h3 class="font-headline-md text-headline-md text-on-surface border-b border-outline-variant/30 pb-base">
+                                General Information
+                            </h3>
+                            <div class="space-y-base">
+                                <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Product Name</label>
+                                <input @bind="_name" @bind:event="oninput"
+                                       class="w-full p-md border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md"
+                                       placeholder="e.g. Minimalist Ceramic Lamp" type="text" />
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                                <div class="space-y-base">
+                                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Category</label>
+                                    <select @bind="_categoryId"
+                                            class="w-full p-md border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md bg-surface-container-low">
+                                        <option value="0">Select a category...</option>
+                                        @foreach (var cat in _categories)
+                                        {
+                                            <option value="@cat.Id">@cat.Name</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="space-y-base">
+                                <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Description</label>
+                                <textarea @bind="_description" @bind:event="oninput"
+                                          class="w-full p-md border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md resize-none"
+                                          placeholder="Describe the craftsmanship, materials, and unique selling points..."
+                                          rows="6"></textarea>
+                            </div>
+                        </div>
 
-            <label>Category</label>
-            <select @bind="_categoryId">
-                @foreach (var cat in _categories)
+                        @* Inventory & Pricing (create mode only) *@
+                        @if (Product is null)
+                        {
+                            <div class="bg-surface-container-lowest p-md rounded-lg shadow-sm space-y-md">
+                                <h3 class="font-headline-md text-headline-md text-on-surface border-b border-outline-variant/30 pb-base">
+                                    Inventory &amp; Pricing
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                                    <div class="space-y-base">
+                                        <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Price ($)</label>
+                                        <div class="relative">
+                                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-outline font-body-md">$</span>
+                                            <input @bind="_price" @bind:event="oninput"
+                                                   class="w-full p-md pl-8 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md"
+                                                   placeholder="0.00" type="number" step="0.01" min="0" />
+                                        </div>
+                                    </div>
+                                    <div class="space-y-base">
+                                        <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Stock Quantity</label>
+                                        <input @bind="_stock" @bind:event="oninput"
+                                               class="w-full p-md border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md"
+                                               placeholder="0" type="number" min="0" />
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    @* Right column: Media & Actions *@
+                    <div class="space-y-gutter">
+                        <div class="bg-surface-container-lowest p-md rounded-lg shadow-sm space-y-md">
+                            <h3 class="font-headline-md text-headline-md text-on-surface border-b border-outline-variant/30 pb-base">
+                                Product Image
+                            </h3>
+                            <div class="group relative aspect-square w-full rounded-lg border-2 border-dashed border-outline-variant bg-surface-container-low flex flex-col items-center justify-center cursor-pointer overflow-hidden hover:border-primary transition-colors">
+                                <span class="material-symbols-outlined text-outline text-4xl group-hover:text-primary transition-colors">add_photo_alternate</span>
+                                <p class="font-label-sm text-label-sm text-on-surface-variant mt-sm">Enter image URLs below</p>
+                            </div>
+                            <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Image URLs</label>
+                            <textarea @bind="_imageUrlsText" @bind:event="oninput"
+                                      class="w-full p-md border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md resize-none"
+                                      placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg"
+                                      rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                @* Error message *@
+                @if (!string.IsNullOrEmpty(_error))
                 {
-                    <option value="@cat.Id">@cat.Name</option>
+                    <p class="text-error font-body-md mt-md text-center">@_error</p>
                 }
-            </select>
 
-            <label>Image URLs (comma separated)</label>
-            <input @bind="_imageUrlsText" />
-
-            <button @onclick="Save">Save</button>
-            <button @onclick="Cancel">Cancel</button>
+                @* Actions *@
+                <div class="flex gap-sm justify-end mt-md pt-md border-t border-outline-variant">
+                    <button class="px-md py-sm rounded-xl font-body-md text-on-surface-variant bg-surface-container-low border border-outline-variant hover:bg-surface-container transition-all active:scale-95"
+                            @onclick="Cancel">Cancel</button>
+                    <button class="px-md py-sm rounded-xl font-body-md text-on-primary bg-primary shadow-lg shadow-primary/20 hover:shadow-xl hover:translate-y-[-2px] transition-all active:scale-95"
+                            @onclick="Save" disabled="@_isSaving">
+                        @(_isSaving ? "Saving..." : (Product is null ? "Create Product" : "Save Changes"))
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 }
@@ -37,34 +132,48 @@
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback OnSaved { get; set; }
 
-    private string _name = string.Empty;
+    private string _name = "";
     private string? _description;
     private int _categoryId;
-    private string _imageUrlsText = string.Empty;
+    private string _imageUrlsText = "";
+    private decimal _price;
+    private int _stock;
+    private string? _error;
+    private bool _isSaving;
     private List<CategoryResponse> _categories = [];
     private bool _loaded;
 
-    // Load the full product + categories only when the modal becomes visible.
-    // AdminProductResponse is a flat per-variant row and lacks Description,
-    // CategoryId, and ImageUrls, so we hydrate from ProductHandler.GetByIdAsync.
     protected override async Task OnParametersSetAsync()
     {
-        if (Visible && Product is not null && !_loaded)
+        if (Visible && !_loaded)
         {
-            var full = await Products.GetByIdAsync(Product.ProductId);
-            if (full is not null)
-            {
-                _name = full.Name;
-                _description = full.Description;
-                _categoryId = full.CategoryId;
-                _imageUrlsText = string.Join(",", full.ImageUrls);
-            }
             _categories = (await Categories.GetAllAsync()).ToList();
+
+            if (Product is not null)
+            {
+                var full = await Products.GetByIdAsync(Product.ProductId);
+                if (full is not null)
+                {
+                    _name = full.Name;
+                    _description = full.Description;
+                    _categoryId = full.CategoryId;
+                    _imageUrlsText = string.Join(", ", full.ImageUrls);
+                }
+            }
+            else
+            {
+                _name = "";
+                _description = null;
+                _categoryId = 0;
+                _imageUrlsText = "";
+                _price = 0;
+                _stock = 0;
+            }
+            _error = null;
             _loaded = true;
         }
 
-        if (!Visible)
-            _loaded = false;
+        if (!Visible) _loaded = false;
     }
 
     private void Cancel()
@@ -75,15 +184,60 @@
 
     private async Task Save()
     {
-        if (Product is null) return;
+        _error = null;
 
-        var urls = _imageUrlsText
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (string.IsNullOrWhiteSpace(_name))
+        {
+            _error = "Product name is required.";
+            return;
+        }
 
-        await Products.UpdateAsync(Product.ProductId,
-            new UpdateProductRequest(_name, _description, _categoryId, urls));
+        _isSaving = true;
+        StateHasChanged();
 
-        _loaded = false;
-        await OnSaved.InvokeAsync();
+        try
+        {
+            if (Product is null)
+            {
+                @* Create new product *@
+                var urls = _imageUrlsText
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                var request = new CreateProductRequest(
+                    _name, _description, _categoryId, urls,
+                    [_price > 0 || _stock > 0
+                        ? new CreateVariantRequest("Default", _price, _stock)
+                        : new CreateVariantRequest("Default", 0, 0)]);
+
+                var (success, response, error) = await Products.CreateAsync(request);
+                if (!success)
+                    _error = error ?? "Failed to create product.";
+            }
+            else
+            {
+                var urls = _imageUrlsText
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                var (success, _, error) = await Products.UpdateAsync(
+                    Product.ProductId,
+                    new UpdateProductRequest(_name, _description, _categoryId, urls));
+
+                if (!success)
+                    _error = error ?? "Failed to update product.";
+            }
+
+            if (_error is null)
+            {
+                _loaded = false;
+                await OnSaved.InvokeAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _isSaving = false;
+            StateHasChanged();
+        }
     }
 }

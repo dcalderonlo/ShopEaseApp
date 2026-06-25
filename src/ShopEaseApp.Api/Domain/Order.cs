@@ -9,7 +9,7 @@ public class Order
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
     public decimal Total { get; set; }
     public DateTime CreatedAt { get; set; }
-    public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
+    public ICollection<OrderItem> Items { get; set; } = [];
 }
 
 public class OrderItem
