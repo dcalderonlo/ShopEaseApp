@@ -39,7 +39,7 @@ TestResults/
 *.coveragexml
 
 # Uploaded images (user-generated content)
-wwwroot/uploads/
+src/ShopEaseApp.Api/wwwroot/uploads/
 
 # Docker
 **/docker-compose.override.yml
