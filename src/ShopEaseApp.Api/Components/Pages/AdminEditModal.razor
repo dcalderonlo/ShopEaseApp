@@ -94,7 +94,8 @@
                             <h3 class="font-headline-md text-headline-md text-on-surface border-b border-outline-variant/30 pb-base">
                                 Product Image
                             </h3>
-                            <label class="group relative aspect-square w-full rounded-lg border-2 border-dashed border-outline-variant bg-surface-container-low flex flex-col items-center justify-center cursor-pointer overflow-hidden hover:border-primary transition-colors">
+                            <label class="group relative aspect-square w-full rounded-lg border-2 border-dashed border-outline-variant bg-surface-container-low flex flex-col items-center justify-center cursor-pointer overflow-hidden hover:border-primary transition-colors duration-300">
+                                <div class="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity bg-primary"></div>
                                 <InputFile class="hidden" accept=".jpg,.jpeg,.png,.webp"
                                            OnChange="HandleFileSelected" />
                                 @if (!string.IsNullOrEmpty(_previewUrl))
@@ -104,9 +105,10 @@
                                 else
                                 {
                                     <span class="material-symbols-outlined text-outline text-4xl group-hover:text-primary transition-colors">add_photo_alternate</span>
-                                    <p class="font-label-sm text-label-sm text-on-surface-variant mt-sm">Click to upload image</p>
-                                    <p class="text-[10px] text-outline mt-xs">JPG, PNG, WebP up to 10MB</p>
+                                    <p class="font-label-sm text-label-sm text-on-surface-variant mt-sm">Click to upload or drag image</p>
+                                    <p class="text-[10px] text-outline mt-xs">PNG, JPG up to 10MB</p>
                                 }
+                                <div class="absolute -bottom-4 -right-4 w-32 h-32 rounded-full bg-primary/5 blur-2xl"></div>
                             </label>
                             @if (_isUploading)
                             {
@@ -114,11 +116,55 @@
                                     <span class="material-symbols-outlined animate-spin text-sm">progress_activity</span> Uploading...
                                 </p>
                             }
+                            @* Thumbnail carousel *@
+                            <div class="space-y-md">
+                                <div class="relative flex items-center group/carousel">
+                                    <button class="absolute left-0 z-10 p-1 bg-surface-container-lowest/80 rounded-full shadow-sm border border-outline-variant/30 hover:bg-primary hover:text-on-primary transition-all opacity-0 group-hover/carousel:opacity-100 -translate-x-1/2"
+                                            @onclick="PrevImage">
+                                        <span class="material-symbols-outlined text-body-md">chevron_left</span>
+                                    </button>
+                                    <div class="flex-1 flex gap-sm overflow-x-auto scrollbar-hide py-1 px-1">
+                                        @if (_imageUrls.Count > 0)
+                                        {
+                                            @foreach (var url in _imageUrls.Select((url, idx) => new { url, idx }))
+                                            {
+                                                <div class="flex-shrink-0 w-16 aspect-square bg-surface-container-low rounded-lg border @(_selectedImageIdx == url.idx ? "border-2 border-primary" : "border border-outline-variant/30") flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors"
+                                                     @onclick="() => _selectedImageIdx = url.idx">
+                                                    <img src="@url.url" class="w-full h-full object-cover rounded-lg" />
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <div class="flex-shrink-0 w-16 aspect-square bg-surface-container-low rounded-lg border border-outline-variant/30 flex items-center justify-center">
+                                                <span class="material-symbols-outlined text-outline-variant">image</span>
+                                            </div>
+                                        }
+                                        <label class="flex-shrink-0 w-16 aspect-square bg-surface-container-low rounded-lg border border-dashed border-outline-variant/30 flex items-center justify-center cursor-pointer hover:bg-surface-container transition-colors">
+                                            <InputFile class="hidden" accept=".jpg,.jpeg,.png,.webp" OnChange="HandleFileSelected" />
+                                            <span class="material-symbols-outlined text-outline-variant">add</span>
+                                        </label>
+                                    </div>
+                                    <button class="absolute right-0 z-10 p-1 bg-surface-container-lowest/80 rounded-full shadow-sm border border-outline-variant/30 hover:bg-primary hover:text-on-primary transition-all opacity-0 group-hover/carousel:opacity-100 translate-x-1/2"
+                                            @onclick="NextImage">
+                                        <span class="material-symbols-outlined text-body-md">chevron_right</span>
+                                    </button>
+                                </div>
+                                @if (_imageUrls.Count > 0)
+                                {
+                                    <div class="flex justify-center gap-xs">
+                                        @for (int i = 0; i < _imageUrls.Count; i++)
+                                        {
+                                            <div class="w-2 h-2 rounded-full @(i == _selectedImageIdx ? "bg-primary" : "bg-outline-variant/50")"></div>
+                                        }
+                                    </div>
+                                }
+                            </div>
                             <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Image URLs</label>
                             <textarea @bind="_imageUrlsText" @bind:event="oninput"
                                       class="w-full p-md border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md resize-none"
                                       placeholder="https://example.com/image1.jpg"
-                                      rows="3"></textarea>
+                                      rows="2"></textarea>
                         </div>
                     </div>
                 </div>
@@ -157,8 +203,9 @@
     private int _stock;
     private string? _error;
     private bool _isSaving;
-    private string? _previewUrl;
     private bool _isUploading;
+    private string? _previewUrl;
+    private int _selectedImageIdx;
     private List<CategoryResponse> _categories = [];
     private bool _loaded;
 
@@ -231,9 +278,25 @@
             _imageUrlsText += ", " + url;
 
         _previewUrl = url;
+        _selectedImageIdx = _imageUrls.Count - 1;
         _isUploading = false;
         _error = null;
         StateHasChanged();
+    }
+
+    private List<string> _imageUrls =>
+        _imageUrlsText.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+
+    private void PrevImage()
+    {
+        if (_imageUrls.Count > 0)
+            _selectedImageIdx = (_selectedImageIdx - 1 + _imageUrls.Count) % _imageUrls.Count;
+    }
+
+    private void NextImage()
+    {
+        if (_imageUrls.Count > 0)
+            _selectedImageIdx = (_selectedImageIdx + 1) % _imageUrls.Count;
     }
 
     private void Cancel()
