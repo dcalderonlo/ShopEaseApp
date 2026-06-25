@@ -1,0 +1,75 @@
+@* Organism: Categories table with search, actions, pagination *@
+<div class="bg-surface-container-lowest rounded-lg shadow-soft overflow-hidden border border-outline-variant">
+    <div class="p-md border-b border-outline-variant flex justify-between items-center gap-md">
+        <div class="relative w-full max-w-md">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+            <input @bind="SearchTerm" @bind:event="oninput"
+                   class="w-full pl-12 pr-4 py-2.5 bg-surface-container-low border-none rounded-full focus:ring-2 focus:ring-primary-container text-body-md transition-all"
+                   placeholder="Search categories..." type="text" />
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-surface-container text-on-surface-variant">
+                    <th class="px-md py-4 font-label-sm text-label-sm uppercase tracking-wider text-outline">Name</th>
+                    <th class="px-md py-4 font-label-sm text-label-sm uppercase tracking-wider text-outline">Description</th>
+                    <th class="px-md py-4 font-label-sm text-label-sm uppercase tracking-wider text-outline text-center">Products</th>
+                    <th class="px-md py-4 font-label-sm text-label-sm uppercase tracking-wider text-outline text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant">
+                @foreach (var cat in FilteredItemsList)
+                {
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="px-md py-5 font-body-md font-bold text-on-surface">@cat.Name</td>
+                        <td class="px-md py-5 text-body-md text-outline max-w-xs truncate">@cat.Description</td>
+                        <td class="px-md py-5 text-center">
+                            <span class="inline-block px-3 py-1 bg-primary-fixed-dim text-on-primary-fixed rounded-full text-label-sm font-bold">@cat.ProductCount</span>
+                        </td>
+                        <td class="px-md py-5 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <button class="p-2 text-on-surface-variant hover:text-primary hover:bg-primary-container/10 rounded-lg transition-all"
+                                        @onclick="() => OnEdit.InvokeAsync(cat)">
+                                    <span class="material-symbols-outlined">edit</span>
+                                </button>
+                                <button class="p-2 text-on-surface-variant hover:text-error hover:bg-error-container/10 rounded-lg transition-all"
+                                        @onclick="() => OnDelete.InvokeAsync(cat)">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="px-md py-4 bg-surface-container flex items-center justify-between">
+        <p class="text-label-sm text-outline">Showing @_shownCount of @_totalCount categories</p>
+    </div>
+</div>
+
+@code {
+    [Parameter] public IReadOnlyCollection<CategoryRow> Items { get; set; } = [];
+    [Parameter] public EventCallback<CategoryRow> OnEdit { get; set; }
+    [Parameter] public EventCallback<CategoryRow> OnDelete { get; set; }
+
+    private string SearchTerm { get; set; } = "";
+    private int _shownCount => FilteredItemsList.Count();
+    private int _totalCount => Items.Count;
+
+    private List<CategoryRow> FilteredItemsList =>
+        string.IsNullOrWhiteSpace(SearchTerm)
+            ? Items.ToList()
+            : Items.Where(c => (c.Name?.Contains(SearchTerm) ?? false)
+                            || (c.Description?.Contains(SearchTerm) ?? false)).ToList();
+
+    public class CategoryRow
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public string? Description { get; set; }
+        public int ProductCount { get; set; }
+    }
+}
