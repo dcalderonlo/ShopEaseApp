@@ -38,8 +38,8 @@
                 @foreach (var item in FilteredItems)
                 {
                     <tr class="group hover:bg-surface-container-low/50 transition-colors">
-                        <td class="px-md py-md font-bold text-on-surface">@item.Name</td>
-                        <td class="px-md py-md text-on-surface-variant max-w-xs truncate">@item.Description</td>
+                        <td class="px-md py-md font-bold text-on-surface">@item.CategoryName</td>
+                        <td class="px-md py-md text-on-surface-variant max-w-xs truncate">@item.CategoryDescription</td>
                         <td class="px-md py-md text-center">
                             <span class="px-md py-1 bg-primary-fixed-dim text-on-primary-fixed rounded-full text-label-sm font-bold">@item.ProductCount</span>
                         </td>
@@ -80,8 +80,8 @@
         string.IsNullOrWhiteSpace(SearchTerm)
             ? Items.ToList()
             : Items.Where(c =>
-                (c.Name?.Contains(SearchTerm) ?? false)
-                || (c.Description?.Contains(SearchTerm) ?? false)).ToList();
+                (c.CategoryName?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (c.CategoryDescription?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false)).ToList();
 
     private int TotalCount => Items.Count();
 

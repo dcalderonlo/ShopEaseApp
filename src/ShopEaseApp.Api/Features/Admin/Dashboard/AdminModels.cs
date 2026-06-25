@@ -29,7 +29,7 @@ public record AdminProductItem(
 
 /// <summary>DTO for rendering a category row in admin tables.</summary>
 public record AdminCategoryItem(
-    int Id,
-    string Name,
-    string? Description,
+    int CategoryId,
+    string CategoryName,
+    string? CategoryDescription,
     int ProductCount);

@@ -53,8 +53,8 @@
         {
             if (Category is not null)
             {
-                _name = Category.Name;
-                _description = Category.Description ?? "";
+                _name = Category.CategoryName;
+                _description = Category.CategoryDescription ?? "";
             }
             else
             {
@@ -75,7 +75,7 @@
         if (Category is null)
             await CategoryHandler.CreateAsync(new CreateCategoryRequest(_name, _description));
         else
-            await CategoryHandler.UpdateAsync(Category.Id, new UpdateCategoryRequest(_name, _description));
+            await CategoryHandler.UpdateAsync(Category.CategoryId, new UpdateCategoryRequest(_name, _description));
 
         _loaded = false;
         await OnSaved.InvokeAsync();

@@ -84,8 +84,8 @@
     private List<AdminCategoryItem> _categories = [];
     private List<AdminCategoryItem> _filteredCategories => string.IsNullOrWhiteSpace(_search)
         ? _categories
-        : _categories.Where(c => c.Name.Contains(_search, StringComparison.OrdinalIgnoreCase)
-                               || (c.Description?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)).ToList();
+        : _categories.Where(c => c.CategoryName.Contains(_search, StringComparison.OrdinalIgnoreCase)
+                               || (c.CategoryDescription?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)).ToList();
     private string _search = "";
     private int _totalCategories => _categories.Count;
     private int _totalProducts => _categories.Sum(c => c.ProductCount);
@@ -108,15 +108,15 @@
     private void EditCategory(AdminCategoryItem cat)
     {
         _editingCategory = cat;
-        _formName = cat.Name;
-        _formDescription = cat.Description ?? "";
+        _formName = cat.CategoryName;
+        _formDescription = cat.CategoryDescription ?? "";
         _formError = null;
         _showModal = true;
     }
 
     private async Task DeleteCategory(AdminCategoryItem cat)
     {
-        var (success, error) = await CategoryHandler.DeleteAsync(cat.Id);
+        var (success, error) = await CategoryHandler.DeleteAsync(cat.CategoryId);
         if (!success) return;
         await LoadData();
     }
@@ -132,7 +132,7 @@
         }
         else
         {
-            await CategoryHandler.UpdateAsync(_editingCategory.Id, new UpdateCategoryRequest(_formName, _formDescription));
+            await CategoryHandler.UpdateAsync(_editingCategory.CategoryId, new UpdateCategoryRequest(_formName, _formDescription));
         }
 
         _showModal = false;

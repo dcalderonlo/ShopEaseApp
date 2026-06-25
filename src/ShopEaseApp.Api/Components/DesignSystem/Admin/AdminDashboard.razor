@@ -89,9 +89,9 @@
         StateHasChanged();
     }
 
-    private void FilterAll() { _statusFilter = null; InvokeAsync(RefreshData); }
-    private void FilterInStock() { _statusFilter = "In Stock"; InvokeAsync(RefreshData); }
-    private void FilterLowStock() { _statusFilter = "Low Stock"; InvokeAsync(RefreshData); }
+    private async Task FilterAll() { _statusFilter = null; await RefreshData(); }
+    private async Task FilterInStock() { _statusFilter = "In Stock"; await RefreshData(); }
+    private async Task FilterLowStock() { _statusFilter = "Low Stock"; await RefreshData(); }
 
     private static AdminProductItem MapToTableItem(AdminProductResponse p) =>
         new(p.ProductId, p.VariantId, p.ProductName, p.CategoryName, p.Stock, p.Status, p.Price);
