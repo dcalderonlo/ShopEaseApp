@@ -37,11 +37,11 @@
     </div>
 </main>
 
-<CategoryFormModal Category="@_editingCategory" Visible="@_showModal"
+<AdminCategoryEditModal Category="@_editingCategory" Visible="@_showModal"
                    OnClose="() => _showModal = false"
                    OnCreate="HandleCreate" OnUpdate="HandleUpdate" />
 
-<CategoryDeleteModal Category="@_deletingCategory" Visible="@_showDeleteModal"
+<AdminCategoryDeleteModal Category="@_deletingCategory" Visible="@_showDeleteModal"
                      OnClose="() => _showDeleteModal = false"
                      OnConfirm="HandleDeleteConfirmed" />
 
