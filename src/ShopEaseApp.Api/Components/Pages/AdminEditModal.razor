@@ -98,9 +98,9 @@
                                 <div class="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity bg-primary"></div>
                                 <InputFile class="hidden" accept=".jpg,.jpeg,.png,.webp"
                                            OnChange="HandleFileSelected" />
-                                @if (!string.IsNullOrEmpty(_previewUrl))
+                                @if (_imageUrls.Count > 0 && _selectedImageIdx < _imageUrls.Count)
                                 {
-                                    <img src="@_previewUrl" class="absolute inset-0 w-full h-full object-cover rounded-lg" />
+                                    <img src="@_imageUrls[_selectedImageIdx]" class="absolute inset-0 w-full h-full object-cover rounded-lg" />
                                 }
                                 else
                                 {
@@ -199,7 +199,6 @@
     private string? _error;
     private bool _isSaving;
     private bool _isUploading;
-    private string? _previewUrl;
     private int _selectedImageIdx;
     private List<CategoryResponse> _categories = [];
     private bool _loaded;
@@ -272,7 +271,6 @@
         else
             _imageUrlsText += ", " + url;
 
-        _previewUrl = url;
         _selectedImageIdx = _imageUrls.Count - 1;
         _isUploading = false;
         _error = null;
