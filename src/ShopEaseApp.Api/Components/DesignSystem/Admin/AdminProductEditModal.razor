@@ -1,5 +1,3 @@
-@inject ProductHandler Products
-@inject CategoryHandler Categories
 @inject IWebHostEnvironment Env
 
 @if (Visible)
@@ -175,8 +173,8 @@
                     <button class="px-md py-sm rounded-xl font-body-md text-on-surface-variant bg-surface-container-low border border-outline-variant hover:bg-surface-container transition-all active:scale-95"
                             @onclick="Cancel">Cancel</button>
                     <button class="px-md py-sm rounded-xl font-body-md text-on-primary bg-primary shadow-lg shadow-primary/20 hover:shadow-xl hover:translate-y-[-2px] transition-all active:scale-95"
-                            @onclick="Save" disabled="@_isSaving">
-                        @(_isSaving ? "Saving..." : (Product is null ? "Create Product" : "Save Changes"))
+                            @onclick="Save">
+                        @(Product is null ? "Create Product" : "Save Changes")
                     </button>
                 </div>
             </div>
@@ -188,7 +186,10 @@
     [Parameter] public AdminProductResponse? Product { get; set; }
     [Parameter] public bool Visible { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
-    [Parameter] public EventCallback OnSaved { get; set; }
+    [Parameter] public EventCallback<CreateProductFormData> OnCreate { get; set; }
+    [Parameter] public EventCallback<UpdateProductFormData> OnUpdate { get; set; }
+    [Parameter] public IReadOnlyCollection<CategoryResponse> CategoriesList { get; set; } = [];
+    [Parameter] public ProductResponse? FullProduct { get; set; }
 
     private string _name = "";
     private string? _description;
@@ -197,7 +198,6 @@
     private decimal _price;
     private int _stock;
     private string? _error;
-    private bool _isSaving;
     private bool _isUploading;
     private int _selectedImageIdx;
     private List<CategoryResponse> _categories = [];
@@ -207,18 +207,14 @@
     {
         if (Visible && !_loaded)
         {
-            _categories = (await Categories.GetAllAsync()).ToList();
+            _categories = CategoriesList.ToList();
 
-            if (Product is not null)
+            if (FullProduct is not null)
             {
-                var full = await Products.GetByIdAsync(Product.ProductId);
-                if (full is not null)
-                {
-                    _name = full.Name;
-                    _description = full.Description;
-                    _categoryId = full.CategoryId;
-                    _imageUrlsText = string.Join(", ", full.ImageUrls);
-                }
+                _name = FullProduct.Name;
+                _description = FullProduct.Description;
+                _categoryId = FullProduct.CategoryId;
+                _imageUrlsText = string.Join(", ", FullProduct.ImageUrls);
             }
             else
             {
@@ -301,59 +297,14 @@
     private async Task Save()
     {
         _error = null;
+        if (string.IsNullOrWhiteSpace(_name)) { _error = "Product name is required."; return; }
 
-        if (string.IsNullOrWhiteSpace(_name))
-        {
-            _error = "Product name is required.";
-            return;
-        }
+        var urls = _imageUrlsText.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        _loaded = false;
 
-        _isSaving = true;
-        StateHasChanged();
-
-        try
-        {
-            if (Product is null)
-            {
-                @* Create new product *@
-                var urls = _imageUrlsText
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                var request = new CreateProductRequest(
-                    _name, _description, _categoryId, urls,
-                    [_price > 0 || _stock > 0
-                        ? new CreateVariantRequest("Default", _price, _stock)
-                        : new CreateVariantRequest("Default", 0, 0)]);
-
-                var (success, response, error) = await Products.CreateAsync(request);
-                if (!success)
-                    _error = error ?? "Failed to create product.";
-            }
-            else
-            {
-                var urls = _imageUrlsText
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                var (success, _, error) = await Products.UpdateAsync(
-                    Product.ProductId,
-                    new UpdateProductRequest(_name, _description, _categoryId, urls));
-
-                if (!success)
-                    _error = error ?? "Failed to update product.";
-            }
-
-            if (_error is null)
-            {
-                _loaded = false;
-                await OnSaved.InvokeAsync();
-            }
-        }
-        catch (Exception ex)
-        {
-            _error = ex.Message;
-        }
-        finally
-        {
-            _isSaving = false;
-            StateHasChanged();
-        }
+        if (Product is null)
+            await OnCreate.InvokeAsync(new CreateProductFormData(_name, _description, _categoryId, urls, _price, _stock));
+        else
+            await OnUpdate.InvokeAsync(new UpdateProductFormData(_name, _description, _categoryId, urls));
     }
 }

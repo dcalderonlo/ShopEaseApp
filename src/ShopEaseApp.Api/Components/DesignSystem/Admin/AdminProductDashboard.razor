@@ -1,6 +1,8 @@
 @page "/admin"
 @attribute [Authorize(Roles = "Admin")]
 @using ShopEaseApp.Api.Features.Admin.Dashboard
+@using ShopEaseApp.Api.Features.Catalog.Products
+@using ShopEaseApp.Api.Features.Catalog.Categories
 @using ShopEaseApp.Api.Domain
 @using ShopEaseApp.Api.Components.DesignSystem.Atoms
 @using ShopEaseApp.Api.Components.DesignSystem.Admin
@@ -55,16 +57,21 @@
 
 @if (_showEditModal)
 {
-    <AdminEditModal Product="@_editProduct" Visible="true" OnClose="CloseModals" OnSaved="RefreshData" />
+    <AdminProductEditModal Product="@_editProduct" Visible="true" OnClose="CloseModals"
+                           OnCreate="HandleProductCreate" OnUpdate="HandleProductUpdate"
+                           CategoriesList="@_categories" FullProduct="@_fullProduct" />
 }
 @if (_showDeleteModal && _deleteProduct != null)
 {
-    <AdminDeleteModal Product="@_deleteProduct" Visible="true" OnClose="CloseModals" OnDeleted="RefreshData" />
+    <AdminProductDeleteModal Product="@_deleteProduct" Visible="true" OnClose="CloseModals"
+                             OnConfirm="HandleProductDelete" />
 }
 
 @code {
     private DashboardResponse? _metrics;
     private List<AdminProductResponse> _adminProducts = [];
+    private List<CategoryResponse> _categories = [];
+    private ProductResponse? _fullProduct;
     private string? _statusFilter;
 
     private string TotalProducts => _metrics?.TotalProducts.ToString() ?? "...";
@@ -86,6 +93,7 @@
     {
         _metrics = await Handler.GetMetricsAsync();
         _adminProducts = await Handler.GetProductsAsync(_statusFilter);
+        _categories = (await Cats.GetAllAsync()).ToList();
         StateHasChanged();
     }
 
@@ -99,7 +107,15 @@
     private void OpenEditModal(AdminProductItem item)
     {
         _editProduct = _adminProducts.FirstOrDefault(p => p.ProductId == item.ProductId && p.VariantId == item.VariantId);
+        _fullProduct = null; // loaded async below
         _showEditModal = true;
+        StateHasChanged();
+        _ = LoadFullProductAsync(item.ProductId);
+    }
+
+    private async Task LoadFullProductAsync(int productId)
+    {
+        _fullProduct = await Products.GetByIdAsync(productId);
         StateHasChanged();
     }
 
@@ -117,6 +133,33 @@
         StateHasChanged();
     }
 
+    private async Task HandleProductCreate(CreateProductFormData data)
+    {
+        await Products.CreateAsync(new CreateProductRequest(
+            data.Name, data.Description, data.CategoryId, data.ImageUrls,
+            [data.Price > 0 || data.Stock > 0
+                ? new CreateVariantRequest("Default", data.Price, data.Stock)
+                : new CreateVariantRequest("Default", 0, 0)]));
+        _showEditModal = false;
+        await RefreshData();
+    }
+
+    private async Task HandleProductUpdate(UpdateProductFormData data)
+    {
+        if (_editProduct is null) return;
+        await Products.UpdateAsync(_editProduct.ProductId,
+            new UpdateProductRequest(data.Name, data.Description, data.CategoryId, data.ImageUrls));
+        _showEditModal = false;
+        await RefreshData();
+    }
+
+    private async Task HandleProductDelete(AdminProductResponse product)
+    {
+        await Products.DeleteAsync(product.ProductId);
+        _showDeleteModal = false;
+        await RefreshData();
+    }
+
     private void AddProduct()
     {
         _editProduct = null; // null = create mode
@@ -125,4 +168,6 @@
     }
 
     [Inject] private AdminDashboardHandler Handler { get; set; } = null!;
+    [Inject] private ProductHandler Products { get; set; } = null!;
+    [Inject] private CategoryHandler Cats { get; set; } = null!;
 }

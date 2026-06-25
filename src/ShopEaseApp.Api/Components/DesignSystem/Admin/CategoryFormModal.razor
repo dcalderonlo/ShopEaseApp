@@ -1,4 +1,4 @@
-@* Organism: Category create/edit form modal — glass-card *@
+@* Organism: Category form modal — glass-card, emits data, no domain logic *@
 @if (Visible)
 {
     <div class="fixed inset-0 z-[100] bg-surface/90 backdrop-blur-sm flex items-center justify-center p-4"
@@ -40,7 +40,8 @@
     [Parameter] public AdminCategoryItem? Category { get; set; }
     [Parameter] public bool Visible { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
-    [Parameter] public EventCallback OnSaved { get; set; }
+    [Parameter] public EventCallback<CreateCategoryRequest> OnCreate { get; set; }
+    [Parameter] public EventCallback<(int Id, UpdateCategoryRequest Request)> OnUpdate { get; set; }
 
     private string _name = "";
     private string _description = "";
@@ -51,16 +52,8 @@
     {
         if (Visible && !_loaded)
         {
-            if (Category is not null)
-            {
-                _name = Category.CategoryName;
-                _description = Category.CategoryDescription ?? "";
-            }
-            else
-            {
-                _name = "";
-                _description = "";
-            }
+            if (Category is not null) { _name = Category.Name; _description = Category.Description ?? ""; }
+            else { _name = ""; _description = ""; }
             _error = null;
             _loaded = true;
         }
@@ -72,14 +65,10 @@
         _error = null;
         if (string.IsNullOrWhiteSpace(_name)) { _error = "Name is required."; return; }
 
-        if (Category is null)
-            await CategoryHandler.CreateAsync(new CreateCategoryRequest(_name, _description));
-        else
-            await CategoryHandler.UpdateAsync(Category.CategoryId, new UpdateCategoryRequest(_name, _description));
-
         _loaded = false;
-        await OnSaved.InvokeAsync();
+        if (Category is null)
+            await OnCreate.InvokeAsync(new CreateCategoryRequest(_name, _description));
+        else
+            await OnUpdate.InvokeAsync((Category.Id, new UpdateCategoryRequest(_name, _description)));
     }
-
-    [Inject] private CategoryHandler CategoryHandler { get; set; } = null!;
 }

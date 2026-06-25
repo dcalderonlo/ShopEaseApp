@@ -29,7 +29,23 @@ public record AdminProductItem(
 
 /// <summary>DTO for rendering a category row in admin tables.</summary>
 public record AdminCategoryItem(
-    int CategoryId,
-    string CategoryName,
-    string? CategoryDescription,
+    int Id,
+    string Name,
+    string? Description,
     int ProductCount);
+
+/// <summary>Form data emitted by the product create/edit modal.</summary>
+public record CreateProductFormData(
+    string Name,
+    string? Description,
+    int CategoryId,
+    IEnumerable<string> ImageUrls,
+    decimal Price,
+    int Stock);
+
+/// <summary>Form data emitted by the product edit modal.</summary>
+public record UpdateProductFormData(
+    string Name,
+    string? Description,
+    int CategoryId,
+    IEnumerable<string> ImageUrls);

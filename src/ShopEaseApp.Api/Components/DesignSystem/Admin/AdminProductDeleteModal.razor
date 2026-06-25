@@ -1,5 +1,3 @@
-@inject ProductHandler Products
-
 @if (Visible && Product is not null)
 {
     <div class="modal-overlay">
@@ -7,8 +5,8 @@
             <h3>Delete Product</h3>
             <p>Are you sure you want to delete <strong>@Product.ProductName</strong>?</p>
             <p>This will remove the product and all its variants.</p>
-            <button @onclick="Confirm">Confirm Delete</button>
-            <button @onclick="Cancel">Cancel</button>
+            <button @onclick="() => OnConfirm.InvokeAsync(Product!)">Confirm Delete</button>
+            <button @onclick="() => OnClose.InvokeAsync()">Cancel</button>
         </div>
     </div>
 }
@@ -17,14 +15,5 @@
     [Parameter] public AdminProductResponse? Product { get; set; }
     [Parameter] public bool Visible { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
-    [Parameter] public EventCallback OnDeleted { get; set; }
-
-    private void Cancel() => OnClose.InvokeAsync();
-
-    private async Task Confirm()
-    {
-        if (Product is null) return;
-        await Products.DeleteAsync(Product.ProductId);
-        await OnDeleted.InvokeAsync();
-    }
+    [Parameter] public EventCallback<AdminProductResponse> OnConfirm { get; set; }
 }

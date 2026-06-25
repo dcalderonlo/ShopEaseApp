@@ -18,7 +18,7 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-md mb-md">
-            <StatCard Label="TOTAL CATEGORIES" Value="@_totalCategories.ToString()" ValueClass="text-primary" />
+            <StatCard Label="TOTAL CATEGORIES" Value="@_categories.Count.ToString()" ValueClass="text-primary" />
             <StatCard Label="TOTAL PRODUCTS" Value="@_totalProducts.ToString()" ValueClass="text-tertiary" />
         </div>
 
@@ -29,11 +29,7 @@
             </button>
         </div>
 
-        @* <CategoriesTable Items="@_tableItems.ToList()"
-                       OnEdit="OpenEditModal" OnDelete="OpenDeleteModal" /> *@
-        
-        <categoriesTable Items="@_filteredCategories.ToList()"
-                       OnEdit="EditCategory" OnDelete="DeleteCategory" />
+        <CategoriesTable Items="@_categories" OnEdit="EditCategory" OnDelete="DeleteCategory" />
 
         <footer class="w-full py-lg mt-xl flex justify-center border-t border-outline-variant/30">
             <span class="font-label-sm text-label-sm text-on-surface-variant">© 2026 EasyShop. Energetic Simplicity.</span>
@@ -41,103 +37,46 @@
     </div>
 </main>
 
-@if (_showModal)
-{
-    <div class="fixed inset-0 z-[100] bg-surface/90 backdrop-blur-sm flex items-center justify-center p-4"
-         @onclick="() => _showModal = false">
-        <div class="w-full max-w-md glass-card rounded-xl shadow-xl border border-outline-variant/30 p-lg"
-             @onclick:stopPropagation="true">
-            <h3 class="font-headline-md text-headline-md text-on-surface mb-lg">
-                @(_editingCategory is null ? "Create Category" : "Edit Category")
-            </h3>
-            <div class="space-y-md">
-                <div>
-                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Name</label>
-                    <input @bind="_formName" @bind:event="oninput"
-                           class="w-full p-md border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md mt-2"
-                           placeholder="e.g. Electronics" type="text" />
-                </div>
-                <div>
-                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Description</label>
-                    <textarea @bind="_formDescription" @bind:event="oninput"
-                              class="w-full p-md border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md resize-none mt-2"
-                              placeholder="Brief description..." rows="3"></textarea>
-                </div>
-                @if (!string.IsNullOrEmpty(_formError))
-                {
-                    <p class="text-error font-body-md">@_formError</p>
-                }
-                <div class="flex gap-sm justify-end pt-md border-t border-outline-variant">
-                    <button class="px-md py-sm rounded-xl font-body-md text-on-surface-variant bg-surface-container-low border border-outline-variant"
-                            @onclick="() => _showModal = false">Cancel</button>
-                    <button class="px-md py-sm rounded-xl font-body-md text-on-primary bg-primary"
-                            @onclick="SaveCategory">
-                        @(_editingCategory is null ? "Create" : "Save")
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-}
+<CategoryFormModal Category="@_editingCategory" Visible="@_showModal"
+                   OnClose="() => _showModal = false"
+                   OnCreate="HandleCreate" OnUpdate="HandleUpdate" />
 
 @code {
     private List<AdminCategoryItem> _categories = [];
-    private List<AdminCategoryItem> _filteredCategories => string.IsNullOrWhiteSpace(_search)
-        ? _categories
-        : _categories.Where(c => c.CategoryName.Contains(_search, StringComparison.OrdinalIgnoreCase)
-                               || (c.CategoryDescription?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false)).ToList();
-    private string _search = "";
-    private int _totalCategories => _categories.Count;
     private int _totalProducts => _categories.Sum(c => c.ProductCount);
-
     private bool _showModal;
     private AdminCategoryItem? _editingCategory;
-    private string _formName = "";
-    private string _formDescription = "";
-    private string? _formError;
 
     protected override async Task OnInitializedAsync() => await LoadData();
 
     private async Task LoadData()
     {
-        _categories = (await CategoryHandler.GetAllAsync())
+        _categories = (await CatHandler.GetAllAsync())
             .Select(c => new AdminCategoryItem(c.Id, c.Name, c.Description, 0)).ToList();
         StateHasChanged();
     }
 
-    private void EditCategory(AdminCategoryItem cat)
-    {
-        _editingCategory = cat;
-        _formName = cat.CategoryName;
-        _formDescription = cat.CategoryDescription ?? "";
-        _formError = null;
-        _showModal = true;
-    }
+    private void EditCategory(AdminCategoryItem cat) { _editingCategory = cat; _showModal = true; }
 
     private async Task DeleteCategory(AdminCategoryItem cat)
     {
-        var (success, error) = await CategoryHandler.DeleteAsync(cat.CategoryId);
-        if (!success) return;
+        await CatHandler.DeleteAsync(cat.Id);
         await LoadData();
     }
 
-    private async Task SaveCategory()
+    private async Task HandleCreate(CreateCategoryRequest req)
     {
-        _formError = null;
-        if (string.IsNullOrWhiteSpace(_formName)) { _formError = "Name is required."; return; }
-
-        if (_editingCategory is null)
-        {
-            await CategoryHandler.CreateAsync(new CreateCategoryRequest(_formName, _formDescription));
-        }
-        else
-        {
-            await CategoryHandler.UpdateAsync(_editingCategory.CategoryId, new UpdateCategoryRequest(_formName, _formDescription));
-        }
-
+        await CatHandler.CreateAsync(req);
         _showModal = false;
         await LoadData();
     }
 
-    [Inject] private CategoryHandler CategoryHandler { get; set; } = null!;
+    private async Task HandleUpdate((int Id, UpdateCategoryRequest Request) args)
+    {
+        await CatHandler.UpdateAsync(args.Id, args.Request);
+        _showModal = false;
+        await LoadData();
+    }
+
+    [Inject] private CategoryHandler CatHandler { get; set; } = null!;
 }
