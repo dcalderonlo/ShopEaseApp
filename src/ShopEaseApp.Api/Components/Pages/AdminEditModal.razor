@@ -1,5 +1,6 @@
 @inject ProductHandler Products
 @inject CategoryHandler Categories
+@inject IWebHostEnvironment Env
 
 @if (Visible)
 {
@@ -93,14 +94,30 @@
                             <h3 class="font-headline-md text-headline-md text-on-surface border-b border-outline-variant/30 pb-base">
                                 Product Image
                             </h3>
-                            <div class="group relative aspect-square w-full rounded-lg border-2 border-dashed border-outline-variant bg-surface-container-low flex flex-col items-center justify-center cursor-pointer overflow-hidden hover:border-primary transition-colors">
-                                <span class="material-symbols-outlined text-outline text-4xl group-hover:text-primary transition-colors">add_photo_alternate</span>
-                                <p class="font-label-sm text-label-sm text-on-surface-variant mt-sm">Enter image URLs below</p>
-                            </div>
+                            <label class="group relative aspect-square w-full rounded-lg border-2 border-dashed border-outline-variant bg-surface-container-low flex flex-col items-center justify-center cursor-pointer overflow-hidden hover:border-primary transition-colors">
+                                <InputFile class="hidden" accept=".jpg,.jpeg,.png,.webp"
+                                           OnChange="HandleFileSelected" />
+                                @if (!string.IsNullOrEmpty(_previewUrl))
+                                {
+                                    <img src="@_previewUrl" class="absolute inset-0 w-full h-full object-cover rounded-lg" />
+                                }
+                                else
+                                {
+                                    <span class="material-symbols-outlined text-outline text-4xl group-hover:text-primary transition-colors">add_photo_alternate</span>
+                                    <p class="font-label-sm text-label-sm text-on-surface-variant mt-sm">Click to upload image</p>
+                                    <p class="text-[10px] text-outline mt-xs">JPG, PNG, WebP up to 10MB</p>
+                                }
+                            </label>
+                            @if (_isUploading)
+                            {
+                                <p class="text-on-surface-variant font-label-sm text-center">
+                                    <span class="material-symbols-outlined animate-spin text-sm">progress_activity</span> Uploading...
+                                </p>
+                            }
                             <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Image URLs</label>
                             <textarea @bind="_imageUrlsText" @bind:event="oninput"
                                       class="w-full p-md border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md resize-none"
-                                      placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg"
+                                      placeholder="https://example.com/image1.jpg"
                                       rows="3"></textarea>
                         </div>
                     </div>
@@ -140,6 +157,8 @@
     private int _stock;
     private string? _error;
     private bool _isSaving;
+    private string? _previewUrl;
+    private bool _isUploading;
     private List<CategoryResponse> _categories = [];
     private bool _loaded;
 
@@ -174,6 +193,47 @@
         }
 
         if (!Visible) _loaded = false;
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file.Size > 10 * 1024 * 1024)
+        {
+            _error = "File exceeds 10 MB limit.";
+            return;
+        }
+
+        var ext = Path.GetExtension(file.Name).ToLowerInvariant();
+        if (ext is not ".jpg" and not ".jpeg" and not ".png" and not ".webp")
+        {
+            _error = "Only JPG, PNG, WebP allowed.";
+            return;
+        }
+
+        _isUploading = true;
+        StateHasChanged();
+
+        var uploadsDir = Path.Combine(Env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "uploads");
+        Directory.CreateDirectory(uploadsDir);
+
+        var fileName = $"{Guid.NewGuid()}{ext}";
+        var filePath = Path.Combine(uploadsDir, fileName);
+
+        await using var stream = File.Create(filePath);
+        await file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(stream);
+
+        var url = $"/uploads/{fileName}";
+
+        if (string.IsNullOrWhiteSpace(_imageUrlsText))
+            _imageUrlsText = url;
+        else
+            _imageUrlsText += ", " + url;
+
+        _previewUrl = url;
+        _isUploading = false;
+        _error = null;
+        StateHasChanged();
     }
 
     private void Cancel()
