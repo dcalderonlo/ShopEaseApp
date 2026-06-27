@@ -7,7 +7,7 @@
 @using ShopEaseApp.Api.Components.DesignSystem.Atoms
 @using ShopEaseApp.Api.Components.DesignSystem.Admin
 
-<AdminSidebar CurrentPage="inventory" />
+<Sidebar CurrentPage="inventory" />
 
 <main class="lg:ml-64 min-h-screen transition-all pt-20 lg:pt-0">
     <div class="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop py-lg">
@@ -35,7 +35,174 @@
             </StatCard>
         </div>
 
-        @* Add Product button *@
+        <div class="flex justify-end mb-md">
+            <button class="h-12 px-md bg-primary text-on-primary rounded-full shadow-lg
+                           flex items-center justify-center gap-sm
+                           active:scale-95 transition-transform hover:opacity-90"
+                    @onclick="AddProduct">
+                <span class="material-symbols-outlined text-[24px]">add</span>
+                <span class="font-label-sm text-label-sm">Add New Product</span>
+            </button>
+        </div>
+
+        <ProductsTable Items="@_tableItems.ToList()"
+                       OnEdit="OpenEditModal" OnDelete="OpenDeleteModal" />
+
+        <footer class="w-full py-lg mt-xl flex justify-center border-t border-outline-variant/30">
+            <span class="font-label-sm text-label-sm text-on-surface-variant">© 2026 EasyShop. Energetic Simplicity.</span>
+        </footer>
+    </div>
+</main>
+
+@if (_showEditModal)
+{
+    <AdminProductEditModal Product="@_editProduct" Visible="true" OnClose="CloseModals"
+                           OnCreate="HandleProductCreate" OnUpdate="HandleProductUpdate"
+                           CategoriesList="@_categories" FullProduct="@_fullProduct" />
+}
+@if (_showDeleteModal && _deleteProduct != null)
+{
+    <AdminProductDeleteModal Product="@_deleteProduct" Visible="true" OnClose="CloseModals"
+                             OnConfirm="HandleProductDelete" />
+}
+
+@code {
+    private DashboardResponse? _metrics;
+    private List<AdminProductResponse> _adminProducts = [];
+    private List<CategoryResponse> _categories = [];
+    private ProductResponse? _fullProduct;
+    private string? _statusFilter;
+
+    private string TotalProducts => _metrics?.TotalProducts.ToString() ?? "...";
+    private string TotalSkus => $"{_metrics?.TotalSkus} SKUs";
+    private string LowStockCount => _metrics?.LowStockItems.ToString() ?? "...";
+    private string InventoryVal => _metrics is not null ? $"${_metrics.InventoryValue:N0}" : "...";
+
+    private IEnumerable<AdminProductItem> _tableItems =>
+        _adminProducts.Select(MapToTableItem);
+
+    private bool _showEditModal;
+    private bool _showDeleteModal;
+    private AdminProductResponse? _editProduct;
+    private AdminProductResponse? _deleteProduct;
+
+    protected override async Task OnInitializedAsync() => await RefreshData();
+
+    private async Task RefreshData()
+    {
+        _metrics = await Handler.GetMetricsAsync();
+        _adminProducts = await Handler.GetProductsAsync(_statusFilter);
+        _categories = (await Cats.GetAllAsync()).ToList();
+        StateHasChanged();
+    }
+
+    private async Task FilterAll() { _statusFilter = null; await RefreshData(); }
+    private async Task FilterInStock() { _statusFilter = "In Stock"; await RefreshData(); }
+    private async Task FilterLowStock() { _statusFilter = "Low Stock"; await RefreshData(); }
+
+    private static AdminProductItem MapToTableItem(AdminProductResponse p) =>
+        new(p.ProductId, p.VariantId, p.ProductName, p.CategoryName, p.Stock, p.Status, p.Price, p.ThumbnailUrl);
+
+    private void OpenEditModal(AdminProductItem item)
+    {
+        _editProduct = _adminProducts.FirstOrDefault(p => p.ProductId == item.ProductId && p.VariantId == item.VariantId);
+        _fullProduct = null;
+        _showEditModal = true;
+        StateHasChanged();
+        _ = LoadFullProductAsync(item.ProductId);
+    }
+
+    private async Task LoadFullProductAsync(int productId)
+    {
+        _fullProduct = await Products.GetByIdAsync(productId);
+        StateHasChanged();
+    }
+
+    private void OpenDeleteModal(AdminProductItem item)
+    {
+        _deleteProduct = _adminProducts.FirstOrDefault(p => p.ProductId == item.ProductId && p.VariantId == item.VariantId);
+        _showDeleteModal = true;
+        StateHasChanged();
+    }
+
+    private void CloseModals()
+    {
+        _showEditModal = _showDeleteModal = false;
+        _editProduct = _deleteProduct = null;
+        StateHasChanged();
+    }
+
+    private async Task HandleProductCreate(CreateProductFormData data)
+    {
+        await Products.CreateAsync(new CreateProductRequest(
+            data.Name, data.Description, data.CategoryId, data.ImageUrls,
+            [data.Price > 0 || data.Stock > 0
+                ? new CreateVariantRequest("Default", data.Price, data.Stock)
+                : new CreateVariantRequest("Default", 0, 0)]));
+        _showEditModal = false;
+        await RefreshData();
+    }
+
+    private async Task HandleProductUpdate(UpdateProductFormData data)
+    {
+        if (_editProduct is null) return;
+        await Products.UpdateAsync(_editProduct.ProductId,
+            new UpdateProductRequest(data.Name, data.Description, data.CategoryId, data.ImageUrls));
+        _showEditModal = false;
+        await RefreshData();
+    }
+
+    private async Task HandleProductDelete(AdminProductResponse product)
+    {
+        await Products.DeleteAsync(product.ProductId);
+        _showDeleteModal = false;
+        await RefreshData();
+    }
+
+    private void AddProduct()
+    {
+        _editProduct = null;
+        _showEditModal = true;
+        StateHasChanged();
+    }
+
+    [Inject] private AdminDashboardHandler Handler { get; set; } = null!;
+    [Inject] private ProductHandler Products { get; set; } = null!;
+    [Inject] private CategoryHandler Cats { get; set; } = null!;
+}
+
+
+
+
+
+
+@* <main class="lg:ml-64 min-h-screen transition-all pt-20 lg:pt-0">
+    <div class="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop py-lg">
+
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-md mb-xl">
+            <div>
+                <h2 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface mb-xs">Inventory</h2>
+                <p class="text-on-surface-variant font-body-md">Oversee your storefront's stock levels in real-time.</p>
+            </div>
+            <div class="flex gap-sm overflow-x-auto pb-xs custom-scrollbar">
+                <FilterChip Active="@(_statusFilter is null)" OnClick="FilterAll">All Products</FilterChip>
+                <FilterChip Active="@(_statusFilter == "In Stock")" OnClick="FilterInStock">In Stock</FilterChip>
+                <FilterChip Active="@(_statusFilter == "Low Stock")" OnClick="FilterLowStock">Low Stock</FilterChip>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-md mb-xl">
+            <StatCard Label="Total Products" Value="@TotalProducts"
+                      Badge="@TotalSkus" BadgeClass="bg-tertiary-fixed text-on-tertiary-fixed-variant" />
+            <StatCard Label="Low Stock Items" Value="@LowStockCount" ValueClass="text-secondary"
+                      Badge="Action Required" BadgeClass="bg-error-container text-on-error-container" />
+            <StatCard Label="Total Valuation" Value="@InventoryVal"
+                      Class="bg-primary text-on-primary" ValueClass="text-on-primary">
+                <span class="material-symbols-outlined text-[32px] opacity-20">payments</span>
+            </StatCard>
+        </div>
+
+        Add Product button
         <div class="flex justify-end mb-md">
             <button class="h-12 px-md bg-primary text-on-primary rounded-full shadow-lg
                            flex items-center justify-center gap-sm
@@ -170,4 +337,4 @@
     [Inject] private AdminDashboardHandler Handler { get; set; } = null!;
     [Inject] private ProductHandler Products { get; set; } = null!;
     [Inject] private CategoryHandler Cats { get; set; } = null!;
-}
+} *@

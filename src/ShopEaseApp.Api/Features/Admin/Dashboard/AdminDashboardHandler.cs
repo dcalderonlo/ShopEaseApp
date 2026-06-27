@@ -4,12 +4,11 @@ using ShopEaseApp.Api.Infrastructure.Data;
 
 namespace ShopEaseApp.Api.Features.Admin.Dashboard;
 
-public class AdminDashboardHandler
+public class AdminDashboardHandler(AppDbContext db)
 {
-    private readonly AppDbContext _db;
-    public AdminDashboardHandler(AppDbContext db) => _db = db;
+    private readonly AppDbContext _db = db;
 
-    public virtual async Task<DashboardResponse> GetMetricsAsync()
+  public virtual async Task<DashboardResponse> GetMetricsAsync()
     {
         var totalProducts = await _db.Products.CountAsync();
         var totalSkus = await _db.ProductVariants.CountAsync();
@@ -34,11 +33,23 @@ public class AdminDashboardHandler
             v.Id, v.Name,
             v.Stock, v.MinimumStockLevel,
             StockStatus.Compute(v.Stock, v.MinimumStockLevel),
-            v.Price));
+            v.Price, v.Product.ImageUrls.FirstOrDefault()));
 
         if (!string.IsNullOrEmpty(statusFilter))
             result = result.Where(r => r.Status == statusFilter);
 
-        return result.OrderBy(r => r.ProductName).ToList();
+        return [.. result.OrderBy(r => r.ProductName)];
+    }
+
+    public virtual async Task<List<AdminCategoryItem>> GetCategoriesAsync()
+    {
+        return await _db.Categories
+            .AsNoTracking()
+            .Select(c => new AdminCategoryItem(
+                c.Id,
+                c.Name,
+                c.Description,
+                c.Products.Count))
+            .ToListAsync();
     }
 }

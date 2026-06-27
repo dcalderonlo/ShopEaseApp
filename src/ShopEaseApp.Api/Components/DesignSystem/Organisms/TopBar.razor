@@ -1,0 +1,91 @@
+@* Organism: Top navigation bar — search, notifications, user profile *@
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] z-40
+               bg-surface/80 backdrop-blur-md border-b border-outline-variant
+               hidden lg:flex justify-between items-center h-16 px-md">
+
+    @* Search *@
+    <div class="relative w-full max-w-md focus-within:ring-2 focus-within:ring-primary rounded-full overflow-hidden">
+        <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline">search</span>
+        <input class="w-full bg-surface-container-low border-none py-sm pl-12 pr-md
+                      font-body-md text-body-md placeholder:text-outline focus:ring-0"
+               placeholder="Search orders, products..." type="text" />
+    </div>
+
+    <div class="flex items-center gap-lg">
+
+        @* Notifications *@
+        <button class="relative p-base rounded-full hover:bg-surface-variant transition-colors">
+            <span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+            <span class="absolute top-1 right-1 w-2 h-2 bg-secondary rounded-full"></span>
+        </button>
+
+        @* User profile *@
+        <div class="flex items-center gap-sm pl-md border-l border-outline-variant">
+            <div class="text-right hidden lg:block">
+                <p class="font-body-md font-bold text-on-surface leading-tight">@UserName</p>
+                <p class="font-label-sm text-outline leading-tight">@UserRole</p>
+            </div>
+            <div class="w-10 h-10 rounded-full border-2 border-primary
+                        bg-primary-container flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary">person</span>
+            </div>
+        </div>
+
+    </div>
+</header>
+
+@code {
+    [Parameter] public string UserName { get; set; } = "Admin User";
+    [Parameter] public string UserRole { get; set; } = "Master Admin";
+}
+
+
+
+
+
+
+
+
+
+@* Organism: Admin top navigation bar — search, notifications, user profile
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] z-40
+               bg-surface/80 backdrop-blur-md border-b border-outline-variant
+               hidden lg:flex justify-between items-center h-16 px-md">
+
+    Search
+    <div class="relative w-full max-w-md focus-within:ring-2 focus-within:ring-primary rounded-full overflow-hidden">
+        <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline">search</span>
+        <input class="w-full bg-surface-container-low border-none py-sm pl-12 pr-md
+                      font-body-md text-body-md placeholder:text-outline focus:ring-0"
+               placeholder="Search orders, products..." type="text" />
+    </div>
+
+    <div class="flex items-center gap-lg">
+
+        Notifications
+        <div class="flex items-center gap-md">
+            <button class="relative p-base rounded-full hover:bg-surface-variant transition-colors">
+                <span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+                <span class="absolute top-1 right-1 w-2 h-2 bg-secondary rounded-full"></span>
+            </button>
+        </div>
+
+        User profile
+        <div class="flex items-center gap-sm pl-md border-l border-outline-variant">
+            <div class="text-right hidden lg:block">
+                <p class="font-body-md font-bold text-on-surface leading-tight">@UserName</p>
+                <p class="font-label-sm text-outline leading-tight">@UserRole</p>
+            </div>
+            <div class="w-10 h-10 rounded-full border-2 border-primary
+                        bg-primary-container flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary">person</span>
+            </div>
+        </div>
+
+    </div>
+</header>
+
+@code {
+    [Parameter] public string UserName { get; set; } = "Admin User";
+    [Parameter] public string UserRole { get; set; } = "Master Admin";
+} *@

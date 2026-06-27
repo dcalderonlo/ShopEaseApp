@@ -1,12 +1,12 @@
-@* Molecule: Admin sidebar navigation link *@
+@* Molecule: Sidebar navigation link *@
 <a href="@Href"
-   class="flex items-center gap-md px-md py-sm rounded-xl transition-all group
+   class="flex items-center gap-md px-md py-sm transition-all duration-200 ease-in-out
           @(Active
-              ? "bg-primary-container text-on-primary-container font-bold scale-98 active-glow"
-              : "text-on-surface-variant hover:bg-surface-variant/50")">
+              ? "text-primary font-bold border-r-4 border-primary hover:bg-surface-variant"
+              : "text-on-surface-variant hover:bg-surface-variant")">
     <span class="material-symbols-outlined"
           style="@(Active ? "font-variation-settings: 'FILL' 1;" : "")">@Icon</span>
-    <span class="font-label-sm text-label-sm">@Label</span>
+    <span class="font-body-md text-body-md">@Label</span>
 </a>
 
 @code {

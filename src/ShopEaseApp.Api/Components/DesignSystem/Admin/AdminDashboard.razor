@@ -1,13 +1,235 @@
 @page "/admin"
 @attribute [Authorize(Roles = "Admin")]
+@using ShopEaseApp.Api.Components.DesignSystem.Admin
+@using ShopEaseApp.Api.Components.DesignSystem.Molecules
+@using ShopEaseApp.Api.Components.DesignSystem.Atoms
+
+<Sidebar CurrentPage="dashboard" />
+<TopBar UserName="Admin User" UserRole="Master Admin" />
+
+<main class="ml-64 min-h-screen">
+    <section class="pt-24 px-md pb-xl">
+
+        @* Page header *@
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-xl gap-md">
+            <div>
+                <h2 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface">
+                    Dashboard Overview
+                </h2>
+                <p class="font-body-md text-on-surface-variant">
+                    Welcome back, here's what's happening today.
+                </p>
+            </div>
+            <div class="flex items-center gap-sm bg-surface-container-lowest p-sm rounded-full
+                        shadow-sm border border-outline-variant">
+                <span class="material-symbols-outlined text-primary">calendar_today</span>
+                <span class="font-body-md font-medium px-md">@DateRange</span>
+                <span class="material-symbols-outlined text-outline">expand_more</span>
+            </div>
+        </div>
+
+        @* Stats grid *@
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md mb-xl">
+            <StatCard Icon="payments"
+                               IconBgClass="bg-primary/10 text-primary"
+                               Label="Total Revenue"
+                               Value="@(_metrics?.TotalRevenue is not null ? $"${_metrics.TotalRevenue:N0}" : "...")"
+                               Growth="+12.5%" />
+            <StatCard Icon="local_mall"
+                               IconBgClass="bg-secondary/10 text-secondary"
+                               Label="Total Orders"
+                               Value="@(_metrics?.TotalOrders.ToString() ?? "...")"
+                               Growth="+8%" />
+            <StatCard Icon="group"
+                               IconBgClass="bg-tertiary/10 text-tertiary"
+                               Label="Active Customers"
+                               Value="@(_metrics?.ActiveCustomers.ToString() ?? "...")"
+                               Growth="+5.4%" />
+            <StatCard Icon="analytics"
+                               IconBgClass="bg-surface-container-high text-on-surface"
+                               Label="Avg. Order Value"
+                               Value="@(_metrics?.AvgOrderValue is not null ? $"${_metrics.AvgOrderValue:F2}" : "...")"
+                               Growth="+2.1%" />
+        </div>
+
+        @* Bento grid *@
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-md">
+
+            @* Sales trend chart — 2/3 width *@
+            <div class="lg:col-span-2 glass-card p-lg rounded-xl shadow-sm">
+                <div class="flex items-center justify-between mb-lg">
+                    <h4 class="font-headline-md text-headline-md">Sales Trend</h4>
+                    <div class="flex gap-sm">
+                        <button class="font-label-sm px-md py-1 bg-primary text-white rounded-full">Revenue</button>
+                        <button class="font-label-sm px-md py-1 text-outline hover:bg-surface-variant rounded-full transition-colors">Orders</button>
+                    </div>
+                </div>
+                <div class="h-64 relative w-full overflow-hidden">
+                    <svg class="w-full h-full" viewBox="0 0 800 200">
+                        <defs>
+                            <linearGradient id="salesGradient" x1="0" x2="0" y1="0" y2="1">
+                                <stop offset="0%" stop-color="#2e5bff" stop-opacity="0.3" />
+                                <stop offset="100%" stop-color="#2e5bff" stop-opacity="0" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M0,150 Q100,140 150,80 T300,100 T450,40 T600,120 T800,50 L800,200 L0,200 Z"
+                              fill="url(#salesGradient)" />
+                        <path d="M0,150 Q100,140 150,80 T300,100 T450,40 T600,120 T800,50"
+                              fill="none" stroke="#2e5bff" stroke-linecap="round" stroke-width="4" />
+                        <circle cx="150" cy="80" fill="#2e5bff" r="6" />
+                        <circle cx="450" cy="40" fill="#2e5bff" r="6" />
+                        <circle cx="800" cy="50" fill="#2e5bff" r="6" />
+                    </svg>
+                    <div class="absolute bottom-0 w-full flex justify-between font-label-sm text-outline pt-md">
+                        <span>Mon</span><span>Tue</span><span>Wed</span>
+                        <span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                    </div>
+                </div>
+            </div>
+
+            @* Recent activity — 1/3 width *@
+            <div class="glass-card p-lg rounded-xl shadow-sm flex flex-col">
+                <h4 class="font-headline-md text-headline-md mb-lg">Recent Activity</h4>
+                <div class="flex-1 space-y-md">
+                    <ActivityFeed Title="New order #4829"
+                                      Subtitle="by Alex Johnson • 2m ago"
+                                      DotClass="bg-primary ring-primary/10"
+                                      HoverClass="group-hover:text-primary" />
+                    <ActivityFeed Title="Category created"
+                                      Subtitle="'Smart Home' • 1h ago"
+                                      DotClass="bg-tertiary ring-tertiary/10"
+                                      HoverClass="group-hover:text-tertiary" />
+                    <ActivityFeed Title="Inventory Alert"
+                                      Subtitle="Low stock: 'Aura Headphones' • 3h ago"
+                                      DotClass="bg-secondary ring-secondary/10"
+                                      HoverClass="group-hover:text-secondary"
+                                      IsLast="true" />
+                </div>
+                <button class="mt-lg w-full text-center py-sm font-label-sm text-primary
+                               hover:bg-primary/5 rounded-full transition-colors">
+                    View All Activities
+                </button>
+            </div>
+
+            @* Top selling products — full width *@
+            <div class="lg:col-span-3 glass-card p-lg rounded-xl shadow-sm overflow-hidden">
+                <div class="flex items-center justify-between mb-lg">
+                    <h4 class="font-headline-md text-headline-md">Top Selling Products</h4>
+                    <div class="flex items-center gap-md">
+                        <button class="flex items-center gap-xs px-md py-sm rounded-full border border-outline-variant
+                                       text-on-surface-variant hover:bg-surface-container-high transition-all">
+                            <span class="material-symbols-outlined">filter_list</span>
+                            <span class="text-label-sm">Filter</span>
+                        </button>
+                        <button class="flex items-center gap-xs px-md py-sm rounded-full border border-outline-variant
+                                       text-on-surface-variant hover:bg-surface-container-high transition-all">
+                            <span class="material-symbols-outlined">download</span>
+                            <span class="text-label-sm">Export</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b border-outline-variant font-label-sm text-outline">
+                                <th class="py-md px-sm">RANK</th>
+                                <th class="py-md px-sm">PRODUCT NAME</th>
+                                <th class="py-md px-sm">CATEGORY</th>
+                                <th class="py-md px-sm">SALES</th>
+                                <th class="py-md px-sm">REVENUE</th>
+                                <th class="py-md px-sm">STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody class="font-body-md text-on-surface">
+                            @foreach (var (product, index) in _topProducts.Select((p, i) => (p, i)))
+                            {
+                                <tr class="border-b border-outline-variant/30 hover:bg-surface-variant/20 transition-colors group">
+                                    <td class="py-md px-sm font-bold text-primary">#@(index + 1)</td>
+                                    <td class="py-md px-sm">
+                                        <div class="flex items-center gap-md">
+                                            <div class="w-10 h-10 rounded-lg bg-surface-container-high
+                                                        flex items-center justify-center text-primary
+                                                        group-hover:scale-110 transition-transform">
+                                                <span class="material-symbols-outlined">@product.Icon</span>
+                                            </div>
+                                            <span>@product.Name</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-md px-sm">
+                                        <span class="bg-surface-container-high px-md py-1 rounded-full
+                                                     text-on-surface-variant font-label-sm">@product.Category</span>
+                                    </td>
+                                    <td class="py-md px-sm font-medium">@product.Sales</td>
+                                    <td class="py-md px-sm font-bold text-primary">$@product.Revenue.ToString("N0")</td>
+                                    <td class="py-md px-sm">
+                                        <StatusBadge Label="@product.Status" />
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </section>
+</main>
+
+@code {
+    private DashboardOverviewMetrics? _metrics;
+
+    // Placeholder — replace with real data from a handler once the Orders feature is built
+    private readonly List<TopProductRow> _topProducts =
+    [
+        new("Aura Noise-Cancelling Headphones", "Electronics", "headphones",    842, 42100, "In Stock"),
+        new("Velocity Smartwatch Series 5",     "Wearables",   "watch",         621, 18630, "In Stock"),
+        new("Eco-Friendly Yoga Mat",            "Fitness",     "nest_eco_leaf", 540, 10800, "Low Stock"),
+        new("Smart Ambient Bulb Pack",          "Smart Home",  "lightbulb",     412,  8240, "In Stock"),
+    ];
+
+    private string DateRange =>
+        $"{DateTime.Now.AddDays(-7):MMM dd, yyyy} - {DateTime.Now:MMM dd, yyyy}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // TODO: replace with real metrics handler when Orders/Users features are implemented
+        _metrics = new DashboardOverviewMetrics(128430, 1842, 856, 69.72m);
+        await Task.CompletedTask;
+    }
+
+    /// <summary>Placeholder metrics record — move to AdminModels.cs once handler exists.</summary>
+    private record DashboardOverviewMetrics(
+        decimal TotalRevenue,
+        int TotalOrders,
+        int ActiveCustomers,
+        decimal AvgOrderValue);
+
+    private record TopProductRow(
+        string Name,
+        string Category,
+        string Icon,
+        int Sales,
+        decimal Revenue,
+        string Status);
+
+    [Inject] private NavigationManager Nav { get; set; } = null!;
+}
+
+
+
+
+
+@* @page "/admin"
+@attribute [Authorize(Roles = "Admin")]
 @using ShopEaseApp.Api.Features.Admin.Dashboard
 @using ShopEaseApp.Api.Features.Catalog.Categories
 @using ShopEaseApp.Api.Components.DesignSystem.Atoms
 @using ShopEaseApp.Api.Components.DesignSystem.Admin
 
 <AdminSidebar CurrentPage="dashboard" />
+<TopBar CurrentPage="dashboard" />
 
-<main class="lg:ml-64 min-h-screen transition-all pt-20 lg:pt-0">
+<main class="lg:ml-64 min-h-screen transition-all pt-16 lg:pt-0">
     <div class="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop py-lg">
 
         <div class="mb-lg">
@@ -78,4 +300,4 @@
 
     [Inject] private AdminDashboardHandler Handler { get; set; } = null!;
     [Inject] private CategoryHandler CatHandler { get; set; } = null!;
-}
+} *@

@@ -15,9 +15,9 @@ public class AdminDashboardTests
 
     private static List<AdminProductResponse> AllProducts =>
     [
-        new(1, "Alpha Ring", "Jewelry", 10, "Gold", 10, 5, "In Stock", 100m),
-        new(2, "Beta Necklace", "Jewelry", 11, "Silver", 3, 5, "Low Stock", 50m),
-        new(3, "Gamma Bracelet", "Jewelry", 12, "Platinum", 0, 5, "Out of Stock", 200m)
+        new(1, "Alpha Ring", "Jewelry", 10, "Gold", 10, 5, "In Stock", 100m, null),
+        new(2, "Beta Necklace", "Jewelry", 11, "Silver", 3, 5, "Low Stock", 50m, null),
+        new(3, "Gamma Bracelet", "Jewelry", 12, "Platinum", 0, 5, "Out of Stock", 200m, null)
     ];
 
     private static Mock<AdminDashboardHandler> CreateHandlerMock()

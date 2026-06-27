@@ -1,0 +1,25 @@
+@* Molecule: Activity feed item — dot + connector line + text *@
+<div class="flex gap-md group">
+    <div class="flex flex-col items-center">
+        <div class="w-3 h-3 rounded-full ring-4 mt-1 @DotClass"></div>
+        @if (!IsLast)
+        {
+            <div class="w-px h-full bg-outline-variant my-xs"></div>
+        }
+    </div>
+    <div class="pb-md">
+        <p class="font-body-md text-on-surface font-semibold @HoverClass transition-colors">@Title</p>
+        <p class="font-label-sm text-outline">@Subtitle</p>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Subtitle { get; set; } = "";
+    /// <summary>Tailwind classes for dot color and ring. e.g. "bg-primary ring-primary/10"</summary>
+    [Parameter] public string DotClass { get; set; } = "bg-primary ring-primary/10";
+    /// <summary>Tailwind hover text color class. e.g. "group-hover:text-primary"</summary>
+    [Parameter] public string HoverClass { get; set; } = "group-hover:text-primary";
+    /// <summary>Hides the connector line below the dot when true.</summary>
+    [Parameter] public bool IsLast { get; set; }
+}

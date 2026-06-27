@@ -1,4 +1,87 @@
-@* Atom: Stat card for admin dashboard metrics *@
+@* Molecule: Stat card — supports two layouts:
+   - Simple (default): label top, large value bottom-left, badge or icon bottom-right
+   - Icon mode (when Icon is set): colored icon top-left, growth badge top-right, label + value below
+*@
+
+@if (!string.IsNullOrEmpty(Icon))
+{
+    @* Dashboard layout: icon + growth badge on top, label + value below *@
+    <div class="bg-surface-container-lowest p-md rounded-lg shadow-soft
+                hover:shadow-md transition-all group @Class">
+        <div class="flex items-center justify-between mb-md">
+            <div class="p-sm rounded-full group-hover:scale-110 transition-transform @IconBgClass">
+                <span class="material-symbols-outlined"
+                      style="font-variation-settings: 'FILL' 1;">@Icon</span>
+            </div>
+            @if (!string.IsNullOrEmpty(Badge))
+            {
+                <span class="font-label-sm text-tertiary bg-tertiary/10 px-sm py-1 rounded-full">@Badge</span>
+            }
+        </div>
+        <p class="font-body-md text-outline">@Label</p>
+        <h3 class="font-headline-md text-headline-md @ValueClass">@Value</h3>
+    </div>
+}
+else
+{
+    @* Simple layout: label top, value + badge/icon bottom *@
+    <div class="bg-surface-container-lowest p-md rounded-lg shadow-soft
+                flex flex-col justify-between @Class">
+        <div class="flex items-center gap-md mb-md">
+            @if (!string.IsNullOrEmpty(StatIcon))
+            {
+                <div class="w-14 h-14 rounded-xl flex items-center justify-center @StatIconBgClass">
+                    <span class="material-symbols-outlined text-3xl">@StatIcon</span>
+                </div>
+            }
+            <span class="text-outline font-label-sm text-label-sm uppercase tracking-wider">@Label</span>
+        </div>
+        <div class="flex items-end justify-between">
+            <span class="font-display-lg-mobile text-display-lg-mobile @ValueClass">@Value</span>
+            @if (!string.IsNullOrEmpty(Badge))
+            {
+                <span class="px-sm py-1 rounded-full text-[10px] font-bold @BadgeClass">@Badge</span>
+            }
+            else
+            {
+                @ChildContent
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public string ValueClass { get; set; } = "text-on-surface";
+
+    /// <summary>Badge text. In icon mode shows growth (e.g. "+12%"). In simple mode shows a label badge.</summary>
+    [Parameter] public string? Badge { get; set; }
+    [Parameter] public string BadgeClass { get; set; } = "";
+
+    /// <summary>Extra Tailwind classes for the card container.</summary>
+    [Parameter] public string Class { get; set; } = "";
+
+    @* — Icon mode params (Dashboard layout) — *@
+    /// <summary>Material symbol name. When set, renders the dashboard icon layout.</summary>
+    [Parameter] public string Icon { get; set; } = "";
+    /// <summary>Tailwind classes for icon container bg + text color. e.g. "bg-primary/10 text-primary"</summary>
+    [Parameter] public string IconBgClass { get; set; } = "bg-primary/10 text-primary";
+
+    @* — Simple mode params (Products/Categories layout) — *@
+    /// <summary>Large side icon for the simple layout (e.g. category page stat icons).</summary>
+    [Parameter] public string StatIcon { get; set; } = "";
+    /// <summary>Tailwind classes for the StatIcon container. e.g. "bg-primary-fixed-dim text-primary"</summary>
+    [Parameter] public string StatIconBgClass { get; set; } = "bg-primary-fixed-dim text-primary";
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}
+
+
+
+
+
+@* Atom: Stat card for admin dashboard metrics
 <div class="raised-card bg-surface p-md rounded-lg border border-outline-variant/30 flex flex-col justify-between @Class">
     <span class="text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider mb-sm">@Label</span>
     <div class="flex items-end justify-between">
@@ -22,4 +105,4 @@
     [Parameter] public string BadgeClass { get; set; } = "";
     [Parameter] public string Class { get; set; } = "";
     [Parameter] public RenderFragment? ChildContent { get; set; }
-}
+} *@

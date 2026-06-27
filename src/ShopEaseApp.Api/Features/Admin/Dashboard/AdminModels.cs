@@ -15,7 +15,8 @@ public record AdminProductResponse(
     int Stock,
     int MinimumStockLevel,
     string Status,
-    decimal Price);
+    decimal Price,
+    string? ThumbnailUrl);
 
 /// <summary>DTO for rendering a product row in admin tables.</summary>
 public record AdminProductItem(
@@ -25,7 +26,8 @@ public record AdminProductItem(
     string CategoryName,
     int Stock,
     string Status,
-    decimal Price);
+    decimal Price,
+    string? ThumbnailUrl);
 
 /// <summary>DTO for rendering a category row in admin tables.</summary>
 public record AdminCategoryItem(
