@@ -1,0 +1,24 @@
+@* Molecule: Quick action card — icon + title + subtitle *@
+
+<a href="@Href"
+   class="group p-lg bg-surface-container-lowest rounded-xl
+          shadow-[0_4px_20px_-4px_rgba(46,91,255,0.08)]
+          hover:shadow-lg hover:shadow-primary/5 transition-all
+          flex flex-col items-start gap-md active:scale-95">
+    <div class="w-12 h-12 rounded-full flex items-center justify-center
+                group-hover:scale-110 transition-transform @IconBgClass">
+        <span class="material-symbols-outlined">@Icon</span>
+    </div>
+    <div>
+        <p class="font-headline-md text-[18px] text-on-surface">@Title</p>
+        <p class="font-label-sm text-outline">@Subtitle</p>
+    </div>
+</a>
+
+@code {
+    [Parameter] public string Href { get; set; } = "#";
+    [Parameter] public string Icon { get; set; } = "star";
+    [Parameter] public string IconBgClass { get; set; } = "bg-primary-container text-on-primary-container";
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Subtitle { get; set; } = "";
+}

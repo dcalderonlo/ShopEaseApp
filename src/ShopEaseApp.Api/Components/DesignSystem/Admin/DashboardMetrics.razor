@@ -1,0 +1,35 @@
+@* Organism: Dashboard stat cards row *@
+@using ShopEaseApp.Api.Components.DesignSystem.Atoms
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md mb-xl">
+    <StatCard Icon="payments"
+              IconBgClass="bg-primary/10 text-primary"
+              Label="Total Revenue"
+              Value="@(Metrics is not null ? $"${Metrics.TotalRevenue:N0}" : "...")"
+              Badge="@(Metrics?.TotalRevenue > 0 ? "+12.5%" : null)" />
+    <StatCard Icon="local_mall"
+              IconBgClass="bg-secondary/10 text-secondary"
+              Label="Total Orders"
+              Value="@(Metrics?.TotalOrders.ToString() ?? "...")"
+              Badge="@(Metrics?.TotalOrders > 0 ? "+8%" : null)" />
+    <StatCard Icon="group"
+              IconBgClass="bg-tertiary/10 text-tertiary"
+              Label="Active Customers"
+              Value="@(Metrics?.ActiveCustomers.ToString() ?? "...")"
+              Badge="@(Metrics?.ActiveCustomers > 0 ? "+5.4%" : null)" />
+    <StatCard Icon="analytics"
+              IconBgClass="bg-surface-container-high text-on-surface"
+              Label="Avg. Order Value"
+              Value="@(Metrics is not null ? $"${Metrics.AvgOrderValue:F2}" : "...")"
+              Badge="@(Metrics?.AvgOrderValue > 0 ? "+2.1%" : null)" />
+</div>
+
+@code {
+    [Parameter] public DashboardMetricsData? Metrics { get; set; }
+
+    public record DashboardMetricsData(
+        decimal TotalRevenue,
+        int     TotalOrders,
+        int     ActiveCustomers,
+        decimal AvgOrderValue);
+}

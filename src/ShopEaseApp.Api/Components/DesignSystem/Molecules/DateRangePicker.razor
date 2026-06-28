@@ -1,0 +1,109 @@
+@* Molecule: Date range picker with presets and custom inputs *@
+
+<div class="relative">
+    <button class="flex items-center gap-sm bg-surface-container-lowest p-sm rounded-full
+                   shadow-sm border border-outline-variant hover:bg-surface-container
+                   transition-colors active:scale-95"
+            @onclick="TogglePicker">
+        <span class="material-symbols-outlined text-primary">calendar_today</span>
+        <span class="font-body-md font-medium px-md">@DateRangeLabel</span>
+        <span class="material-symbols-outlined text-outline transition-transform
+                     @(_show ? "rotate-180" : "")">expand_more</span>
+    </button>
+
+    @if (_show)
+    {
+        <div class="fixed inset-0 z-10" @onclick="ClosePicker"></div>
+        <div class="absolute right-0 top-14 z-20 bg-surface-container-lowest rounded-xl
+                    shadow-lg border border-outline-variant p-md w-80">
+            <p class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-md">
+                Select Date Range
+            </p>
+            <div class="flex flex-wrap gap-xs mb-md">
+                @foreach (var preset in _presets)
+                {
+                    <button class="px-md py-xs rounded-full font-label-sm transition-all
+                                   @(_activePreset == preset.Label
+                                       ? "bg-primary text-on-primary"
+                                       : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high")"
+                            @onclick="() => ApplyPreset(preset)">
+                        @preset.Label
+                    </button>
+                }
+            </div>
+            <div class="space-y-sm">
+                <div>
+                    <label class="font-label-sm text-label-sm text-outline mb-xs block">From</label>
+                    <input type="date"
+                           value="@FromDate.ToString("yyyy-MM-dd")"
+                           @onchange="e => OnFromChanged(e.Value?.ToString())"
+                           class="w-full bg-surface-container-low border-none rounded-lg
+                                  px-md py-sm font-body-md focus:ring-2 focus:ring-primary" />
+                </div>
+                <div>
+                    <label class="font-label-sm text-label-sm text-outline mb-xs block">To</label>
+                    <input type="date"
+                           value="@ToDate.ToString("yyyy-MM-dd")"
+                           @onchange="e => OnToChanged(e.Value?.ToString())"
+                           class="w-full bg-surface-container-low border-none rounded-lg
+                                  px-md py-sm font-body-md focus:ring-2 focus:ring-primary" />
+                </div>
+            </div>
+            <button class="mt-md w-full py-sm bg-primary text-on-primary rounded-full
+                           font-label-sm font-bold hover:opacity-90 transition-opacity"
+                    @onclick="ApplyCustomRange">
+                Apply Range
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public DateTime FromDate { get; set; } = DateTime.Now.AddDays(-6);
+    [Parameter] public DateTime ToDate   { get; set; } = DateTime.Now;
+    [Parameter] public EventCallback<(DateTime From, DateTime To)> OnRangeChanged { get; set; }
+
+    private bool   _show         = false;
+    private string _activePreset = "Last 7 days";
+
+    private string DateRangeLabel => $"{FromDate:MMM dd, yyyy} - {ToDate:MMM dd, yyyy}";
+
+    private record DatePreset(string Label, int DaysBack);
+    private readonly List<DatePreset> _presets =
+    [
+        new("Today",        0),
+        new("Last 7 days",  7),
+        new("Last 30 days", 30),
+        new("Last 90 days", 90),
+    ];
+
+    private void TogglePicker() => _show = !_show;
+    private void ClosePicker()  => _show = false;
+
+    private void ApplyPreset(DatePreset preset)
+    {
+        _activePreset = preset.Label;
+        FromDate      = preset.DaysBack == 0 ? DateTime.Today : DateTime.Now.AddDays(-preset.DaysBack);
+        ToDate        = DateTime.Now;
+        _show         = false;
+        OnRangeChanged.InvokeAsync((FromDate, ToDate));
+    }
+
+    private void OnFromChanged(string? value)
+    {
+        if (DateTime.TryParse(value, out var date)) FromDate = date;
+        _activePreset = "Custom";
+    }
+
+    private void OnToChanged(string? value)
+    {
+        if (DateTime.TryParse(value, out var date)) ToDate = date;
+        _activePreset = "Custom";
+    }
+
+    private void ApplyCustomRange()
+    {
+        _show = false;
+        OnRangeChanged.InvokeAsync((FromDate, ToDate));
+    }
+}

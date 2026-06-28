@@ -1,0 +1,74 @@
+@* Organism: Top navigation bar for the user storefront *@
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 h-16 flex justify-between items-center px-margin-mobile md:px-margin-desktop shadow-sm">
+
+    @* Brand + Nav *@
+    <div class="flex items-center gap-md">
+        <a href="/" class="font-headline-md text-headline-md font-bold text-primary">EaseShop</a>
+        <nav class="hidden md:flex gap-md ml-lg">
+            <a href="/" class="@NavClass("/") py-1">Home</a>
+            <a href="/catalog" class="@NavClass("/catalog") py-1">Catalog</a>
+            <a href="/orders" class="@NavClass("/orders") py-1">Orders</a>
+        </nav>
+    </div>
+
+    @* Actions *@
+    <div class="flex items-center gap-base md:gap-md flex-1 justify-end">
+
+        @* Search *@
+        <div class="relative hidden sm:block max-w-xs w-full mr-md">
+            <input class="w-full bg-surface-container-low border-none rounded-full px-5 py-2
+                          font-body-md focus:ring-2 focus:ring-primary/20 placeholder:text-outline transition-all"
+                   placeholder="Search products..." type="text" />
+            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+        </div>
+
+        <div class="flex items-center gap-sm">
+
+            @* Cart *@
+            <a href="/cart" class="w-10 h-10 flex items-center justify-center rounded-full
+                                   hover:bg-surface-container transition-colors relative active:scale-95 duration-150">
+                <span class="material-symbols-outlined text-on-surface-variant">shopping_cart</span>
+                @if (_cartCount > 0)
+                {
+                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-secondary rounded-full"></span>
+                }
+            </a>
+
+            @* Notifications *@
+            <button class="w-10 h-10 flex items-center justify-center rounded-full
+                           hover:bg-surface-container transition-colors active:scale-95 duration-150">
+                <span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+            </button>
+
+            @* Avatar *@
+            <div class="w-10 h-10 rounded-full border-2 border-primary-container
+                        bg-primary-container flex items-center justify-center ml-sm cursor-pointer">
+                <span class="material-symbols-outlined text-primary">person</span>
+            </div>
+
+            @* Logout *@
+            <a href="/logout" class="w-10 h-10 flex items-center justify-center rounded-full
+                                     hover:bg-surface-container transition-colors active:scale-95 duration-150">
+                <span class="material-symbols-outlined text-on-surface-variant">logout</span>
+            </a>
+        </div>
+    </div>
+</header>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+    [Inject] private NavigationManager Nav { get; set; } = null!;
+
+    private int _cartCount = 0;
+
+    private string NavClass(string path)
+    {
+        var current = new Uri(Nav.Uri).AbsolutePath;
+        return current == path
+            ? "text-primary font-bold border-b-2 border-primary transition-colors"
+            : "text-on-surface-variant hover:text-primary transition-colors";
+    }
+}

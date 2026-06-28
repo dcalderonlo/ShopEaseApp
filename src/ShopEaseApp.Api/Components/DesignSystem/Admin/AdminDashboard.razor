@@ -2,15 +2,209 @@
 @attribute [Authorize(Roles = "Admin")]
 @using ShopEaseApp.Api.Components.DesignSystem.Admin
 @using ShopEaseApp.Api.Components.DesignSystem.Molecules
-@using ShopEaseApp.Api.Components.DesignSystem.Atoms
+@using ShopEaseApp.Api.Features.Catalog.Products
+@using ShopEaseApp.Api.Features.Orders
+@using static ShopEaseApp.Api.Components.DesignSystem.Admin.DashboardMetrics
+@using static ShopEaseApp.Api.Components.DesignSystem.Admin.RecentActivityFeed
+@using static ShopEaseApp.Api.Components.DesignSystem.Admin.TopProductsTable
 
-<Sidebar CurrentPage="dashboard" />
-<TopBar UserName="Admin User" UserRole="Master Admin" />
+<AdminSidebar CurrentPage="dashboard" />
+<AdminTopBar />
 
 <main class="ml-64 min-h-screen">
     <section class="pt-24 px-md pb-xl">
 
-        @* Page header *@
+        @* ── Page header ── *@
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-xl gap-md">
+            <div>
+                <h2 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface">
+                    Dashboard Overview
+                </h2>
+                <p class="font-body-md text-on-surface-variant">
+                    Welcome back, here's what's happening today.
+                </p>
+            </div>
+            <DateRangePicker FromDate="_fromDate"
+                             ToDate="_toDate"
+                             OnRangeChanged="OnDateRangeChanged" />
+        </div>
+
+        @* ── Metrics ── *@
+        <DashboardMetrics Metrics="_metrics" />
+
+        @* ── Bento grid ── *@
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-md">
+            <SalesTrendChart RevenuePoints="_revenuePoints"
+                             OrderPoints="_orderPoints"
+                             DayLabels="_dayLabels" />
+            <RecentActivityFeed Items="_activityFeed" />
+            <TopProductsTable Products="_topProducts" />
+        </div>
+
+    </section>
+</main>
+
+@code {
+    [Inject] private ProductHandler ProductHandler { get; set; } = null!;
+    [Inject] private OrderHandler   OrderHandler   { get; set; } = null!;
+
+    // ── Data ──────────────────────────────────────────────────────────────────
+    private List<ProductResponse> _allProducts = [];
+    private List<OrderResponse>   _allOrders   = [];
+
+    // ── State pasado a organismos ─────────────────────────────────────────────
+    private DashboardMetricsData?      _metrics       = null;
+    private List<ActivityItemData>     _activityFeed  = [];
+    private List<TopProductData>       _topProducts   = [];
+    private double[]                   _revenuePoints = new double[7];
+    private double[]                   _orderPoints   = new double[7];
+    private List<string>               _dayLabels     = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+    // ── Date range ────────────────────────────────────────────────────────────
+    private DateTime _fromDate = DateTime.Now.AddDays(-6);
+    private DateTime _toDate   = DateTime.Now;
+
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
+    protected override async Task OnInitializedAsync()
+    {
+        _allProducts = (await ProductHandler.GetAllAsync()).ToList();
+        _allOrders   = (await OrderHandler.GetAllAsync()).ToList();
+        ApplyDateFilter();
+    }
+
+    private void OnDateRangeChanged((DateTime From, DateTime To) range)
+    {
+        _fromDate = range.From;
+        _toDate   = range.To;
+        ApplyDateFilter();
+    }
+
+    // ── Filter & compute ──────────────────────────────────────────────────────
+    private void ApplyDateFilter()
+    {
+        var filtered = _allOrders
+            .Where(o => o.CreatedAt.Date >= _fromDate.Date
+                     && o.CreatedAt.Date <= _toDate.Date)
+            .ToList();
+
+        // Métricas
+        var totalRevenue  = filtered.Sum(o => o.Total);
+        var totalOrders   = filtered.Count;
+        var customers     = filtered.Select(o => o.CustomerId).Distinct().Count();
+        var avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0m;
+        _metrics = new DashboardMetricsData(totalRevenue, totalOrders, customers, avgOrderValue);
+
+        // Chart points
+        var totalDays  = Math.Max(1, (int)(_toDate.Date - _fromDate.Date).TotalDays + 1);
+        _revenuePoints = new double[7];
+        _orderPoints   = new double[7];
+
+        foreach (var order in filtered)
+        {
+            var dayOffset = (order.CreatedAt.Date - _fromDate.Date).TotalDays;
+            var bucket    = (int)Math.Min(6, dayOffset / totalDays * 7);
+            _revenuePoints[bucket] += (double)order.Total;
+            _orderPoints[bucket]++;
+        }
+
+        // Day labels
+        var days = (int)(_toDate.Date - _fromDate.Date).TotalDays + 1;
+        _dayLabels = Enumerable.Range(0, 7)
+            .Select(i => _fromDate.AddDays(i * Math.Max(1, days - 1) / 6.0).ToString("ddd"))
+            .ToList();
+
+        // Top products
+        var salesByProduct = filtered
+            .SelectMany(o => o.Items)
+            .GroupBy(i => i.ProductName)
+            .Select(g => new { Name = g.Key, Sales = g.Sum(i => i.Quantity), Revenue = g.Sum(i => i.LineTotal) })
+            .OrderByDescending(p => p.Sales)
+            .Take(4)
+            .ToList();
+
+        _topProducts = salesByProduct.Count > 0
+            ? salesByProduct.Select(p =>
+            {
+                var product  = _allProducts.FirstOrDefault(pr => pr.Name == p.Name);
+                var status   = product?.Variants.FirstOrDefault()?.Status.ToString() ?? "In Stock";
+                var category = product?.CategoryName ?? "—";
+                var imageUrl = product?.ImageUrls.FirstOrDefault();
+                return new TopProductData(p.Name, category, CategoryToIcon(category), imageUrl, p.Sales, p.Revenue, status);
+            }).ToList()
+            : _allProducts.Take(4).Select(p => new TopProductData(
+                p.Name, p.CategoryName, CategoryToIcon(p.CategoryName),
+                p.ImageUrls.FirstOrDefault(), 0,
+                p.Variants.FirstOrDefault()?.Price ?? 0,
+                p.Variants.FirstOrDefault()?.Status.ToString() ?? "In Stock")).ToList();
+
+        // Activity feed
+        _activityFeed = [];
+
+        foreach (var order in _allOrders.OrderByDescending(o => o.CreatedAt).Take(2))
+            _activityFeed.Add(new ActivityItemData(
+                $"New order #{order.Id}",
+                $"{order.Total:C} • {TimeAgo(order.CreatedAt)}",
+                "bg-primary ring-primary/10", "group-hover:text-primary"));
+
+        foreach (var (product, variant) in _allProducts
+            .SelectMany(p => p.Variants.Select(v => (p, v)))
+            .Where(x => x.v.Stock <= x.v.MinimumStockLevel)
+            .Take(2))
+        {
+            _activityFeed.Add(new ActivityItemData(
+                "Inventory Alert",
+                $"Low stock: '{product.Name}' ({variant.Stock} left)",
+                "bg-secondary ring-secondary/10", "group-hover:text-secondary"));
+        }
+
+        _activityFeed = _activityFeed.Take(4).ToList();
+        StateHasChanged();
+    }
+
+    private static string TimeAgo(DateTime dt)
+    {
+        var diff = DateTime.Now - dt;
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes}m ago";
+        if (diff.TotalHours   < 24) return $"{(int)diff.TotalHours}h ago";
+        return $"{(int)diff.TotalDays}d ago";
+    }
+
+    private static string CategoryToIcon(string category) => category.ToLower() switch
+    {
+        var c when c.Contains("electr")                                   => "devices",
+        var c when c.Contains("ropa") || c.Contains("fashion")
+                || c.Contains("apparel")                                  => "checkroom",
+        var c when c.Contains("sport")                                    => "fitness_center",
+        var c when c.Contains("home")                                     => "home",
+        var c when c.Contains("wear")                                     => "watch",
+        var c when c.Contains("fit")                                      => "nest_eco_leaf",
+        _                                                                 => "inventory_2"
+    };
+}
+
+
+
+
+
+
+
+
+@* @page "/admin"
+@attribute [Authorize(Roles = "Admin")]
+@using ShopEaseApp.Api.Components.DesignSystem.Admin
+@using ShopEaseApp.Api.Components.DesignSystem.Molecules
+@using ShopEaseApp.Api.Components.DesignSystem.Atoms
+@using ShopEaseApp.Api.Features.Catalog.Products
+@using ShopEaseApp.Api.Features.Catalog.Categories
+@using ShopEaseApp.Api.Features.Orders
+
+<AdminSidebar CurrentPage="dashboard" />
+<AdminTopBar />
+
+<main class="ml-64 min-h-screen">
+    <section class="pt-24 px-md pb-xl">
+
+        Page header
         <div class="flex flex-col md:flex-row md:items-center justify-between mb-xl gap-md">
             <div>
                 <h2 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface">
@@ -28,34 +222,34 @@
             </div>
         </div>
 
-        @* Stats grid *@
+        Stats grid
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md mb-xl">
             <StatCard Icon="payments"
-                               IconBgClass="bg-primary/10 text-primary"
-                               Label="Total Revenue"
-                               Value="@(_metrics?.TotalRevenue is not null ? $"${_metrics.TotalRevenue:N0}" : "...")"
-                               Growth="+12.5%" />
+                      IconBgClass="bg-primary/10 text-primary"
+                      Label="Total Revenue"
+                      Value="@(_metrics is not null ? $"${_metrics.TotalRevenue:N0}" : "...")"
+                      Badge="+12.5%" />
             <StatCard Icon="local_mall"
-                               IconBgClass="bg-secondary/10 text-secondary"
-                               Label="Total Orders"
-                               Value="@(_metrics?.TotalOrders.ToString() ?? "...")"
-                               Growth="+8%" />
+                      IconBgClass="bg-secondary/10 text-secondary"
+                      Label="Total Orders"
+                      Value="@(_metrics?.TotalOrders.ToString() ?? "...")"
+                      Badge="+8%" />
             <StatCard Icon="group"
-                               IconBgClass="bg-tertiary/10 text-tertiary"
-                               Label="Active Customers"
-                               Value="@(_metrics?.ActiveCustomers.ToString() ?? "...")"
-                               Growth="+5.4%" />
+                      IconBgClass="bg-tertiary/10 text-tertiary"
+                      Label="Active Customers"
+                      Value="@(_metrics?.ActiveCustomers.ToString() ?? "...")"
+                      Badge="+5.4%" />
             <StatCard Icon="analytics"
-                               IconBgClass="bg-surface-container-high text-on-surface"
-                               Label="Avg. Order Value"
-                               Value="@(_metrics?.AvgOrderValue is not null ? $"${_metrics.AvgOrderValue:F2}" : "...")"
-                               Growth="+2.1%" />
+                      IconBgClass="bg-surface-container-high text-on-surface"
+                      Label="Avg. Order Value"
+                      Value="@(_metrics is not null ? $"${_metrics.AvgOrderValue:F2}" : "...")"
+                      Badge="+2.1%" />
         </div>
 
-        @* Bento grid *@
+        Bento grid
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-md">
 
-            @* Sales trend chart — 2/3 width *@
+            Sales trend chart — 2/3 width
             <div class="lg:col-span-2 glass-card p-lg rounded-xl shadow-sm">
                 <div class="flex items-center justify-between mb-lg">
                     <h4 class="font-headline-md text-headline-md">Sales Trend</h4>
@@ -87,7 +281,296 @@
                 </div>
             </div>
 
-            @* Recent activity — 1/3 width *@
+            Recent activity — 1/3 width
+            <div class="glass-card p-lg rounded-xl shadow-sm flex flex-col">
+                <h4 class="font-headline-md text-headline-md mb-lg">Recent Activity</h4>
+                <div class="flex-1 space-y-md">
+                    @if (_recentOrders.Count == 0)
+                    {
+                        <p class="font-body-md text-outline">No recent activity.</p>
+                    }
+                    else
+                    {
+                        @foreach (var (order, i) in _recentOrders.Select((o, i) => (o, i)))
+                        {
+                            <ActivityFeed Title="@($"Order #{order.Id} — {order.Status}")"
+                                          Subtitle="@($"{order.Total:C} • {order.CreatedAt:MMM d, h:mm tt}")"
+                                          DotClass="@(order.Status == "Confirmed" ? "bg-tertiary ring-tertiary/10" : "bg-primary ring-primary/10")"
+                                          HoverClass="@(order.Status == "Confirmed" ? "group-hover:text-tertiary" : "group-hover:text-primary")"
+                                          IsLast="@(i == _recentOrders.Count - 1)" />
+                        }
+                    }
+                </div>
+                <button class="mt-lg w-full text-center py-sm font-label-sm text-primary
+                               hover:bg-primary/5 rounded-full transition-colors">
+                    View All Activities
+                </button>
+            </div>
+
+            Top selling products — full width
+            <div class="lg:col-span-3 glass-card p-lg rounded-xl shadow-sm overflow-hidden">
+                <div class="flex items-center justify-between mb-lg">
+                    <h4 class="font-headline-md text-headline-md">Top Selling Products</h4>
+                    <div class="flex items-center gap-md">
+                        <button class="flex items-center gap-xs px-md py-sm rounded-full border border-outline-variant
+                                       text-on-surface-variant hover:bg-surface-container-high transition-all">
+                            <span class="material-symbols-outlined">filter_list</span>
+                            <span class="text-label-sm">Filter</span>
+                        </button>
+                        <button class="flex items-center gap-xs px-md py-sm rounded-full border border-outline-variant
+                                       text-on-surface-variant hover:bg-surface-container-high transition-all">
+                            <span class="material-symbols-outlined">download</span>
+                            <span class="text-label-sm">Export</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b border-outline-variant font-label-sm text-outline">
+                                <th class="py-md px-sm">RANK</th>
+                                <th class="py-md px-sm">PRODUCT NAME</th>
+                                <th class="py-md px-sm">CATEGORY</th>
+                                <th class="py-md px-sm">SALES</th>
+                                <th class="py-md px-sm">REVENUE</th>
+                                <th class="py-md px-sm">STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody class="font-body-md text-on-surface">
+                            @if (_topProducts.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="6" class="py-xl text-center text-outline font-body-md">
+                                        No sales data yet.
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var (product, index) in _topProducts.Select((p, i) => (p, i)))
+                                {
+                                    <tr class="border-b border-outline-variant/30 hover:bg-surface-variant/20 transition-colors group">
+                                        <td class="py-md px-sm font-bold text-primary">#@(index + 1)</td>
+                                        <td class="py-md px-sm">
+                                            <div class="flex items-center gap-md">
+                                                <div class="w-10 h-10 rounded-lg bg-surface-container-high
+                                                            flex items-center justify-center text-primary
+                                                            group-hover:scale-110 transition-transform">
+                                                    <span class="material-symbols-outlined">@product.Icon</span>
+                                                </div>
+                                                <span>@product.Name</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-md px-sm">
+                                            <span class="bg-surface-container-high px-md py-1 rounded-full
+                                                         text-on-surface-variant font-label-sm">@product.Category</span>
+                                        </td>
+                                        <td class="py-md px-sm font-medium">@product.Sales</td>
+                                        <td class="py-md px-sm font-bold text-primary">$@product.Revenue.ToString("N0")</td>
+                                        <td class="py-md px-sm">
+                                            <StatusBadge Label="@product.Status" />
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </section>
+</main>
+
+@code {
+    [Inject] private ProductHandler ProductHandler { get; set; } = null!;
+    [Inject] private OrderHandler OrderHandler { get; set; } = null!;
+    [Inject] private NavigationManager Nav { get; set; } = null!;
+
+    private DashboardOverviewMetrics? _metrics;
+    private List<TopProductRow> _topProducts = [];
+    private List<OrderResponse> _recentOrders = [];
+
+    private string DateRange =>
+        $"{DateTime.Now.AddDays(-7):MMM dd, yyyy} - {DateTime.Now:MMM dd, yyyy}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Secuencial para evitar conflicto de DbContext
+        var products = (await ProductHandler.GetAllAsync()).ToList();
+        var orders   = (await OrderHandler.GetAllAsync()).ToList();
+
+        // ── Métricas ──────────────────────────────────────────────────────────
+        var totalRevenue  = orders.Sum(o => o.Total);
+        var totalOrders   = orders.Count;
+        var customers     = orders.Select(o => o.CustomerId).Distinct().Count();
+        var avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0m;
+
+        _metrics = new DashboardOverviewMetrics(totalRevenue, totalOrders, customers, avgOrderValue);
+
+        // ── Actividad reciente — últimas 3 órdenes ────────────────────────────
+        _recentOrders = orders.Take(3).ToList();
+
+        // ── Top products por unidades vendidas ────────────────────────────────
+        var salesByProduct = orders
+            .SelectMany(o => o.Items)
+            .GroupBy(i => i.ProductName)
+            .Select(g => new
+            {
+                Name    = g.Key,
+                Sales   = g.Sum(i => i.Quantity),
+                Revenue = g.Sum(i => i.LineTotal)
+            })
+            .OrderByDescending(p => p.Sales)
+            .Take(4)
+            .ToList();
+
+        if (salesByProduct.Count > 0)
+        {
+            _topProducts = salesByProduct.Select(p =>
+            {
+                var product  = products.FirstOrDefault(pr => pr.Name == p.Name);
+                var status   = product?.Variants.FirstOrDefault()?.Stock.ToString() ?? "In Stock";
+                var category = product?.CategoryName ?? "—";
+                return new TopProductRow(p.Name, category, CategoryToIcon(category), p.Sales, p.Revenue, status);
+            }).ToList();
+        }
+        else
+        {
+            // Sin órdenes aún: muestra productos del catálogo con ventas en 0
+            _topProducts = products.Take(4).Select(p => new TopProductRow(
+                p.Name,
+                p.CategoryName,
+                CategoryToIcon(p.CategoryName),
+                0,
+                p.Variants.FirstOrDefault()?.Price ?? 0,
+                p.Variants.FirstOrDefault()?.Stock.ToString() ?? "In Stock"
+            )).ToList();
+        }
+    }
+
+    private static string CategoryToIcon(string category) => category.ToLower() switch
+    {
+        var c when c.Contains("electr")                          => "devices",
+        var c when c.Contains("ropa") || c.Contains("fashion")
+                || c.Contains("apparel")                         => "checkroom",
+        var c when c.Contains("sport")                           => "fitness_center",
+        var c when c.Contains("home")                            => "home",
+        var c when c.Contains("wear")                            => "watch",
+        var c when c.Contains("fit")                             => "nest_eco_leaf",
+        _                                                        => "inventory_2"
+    };
+
+    private record DashboardOverviewMetrics(
+        decimal TotalRevenue,
+        int     TotalOrders,
+        int     ActiveCustomers,
+        decimal AvgOrderValue);
+
+    private record TopProductRow(
+        string  Name,
+        string  Category,
+        string  Icon,
+        int     Sales,
+        decimal Revenue,
+        string  Status);
+} *@
+
+
+
+
+
+
+@* @page "/admin"
+@attribute [Authorize(Roles = "Admin")]
+@using ShopEaseApp.Api.Components.DesignSystem.Admin
+@using ShopEaseApp.Api.Components.DesignSystem.Molecules
+@using ShopEaseApp.Api.Components.DesignSystem.Atoms
+
+<AdminSidebar CurrentPage="dashboard" />
+<AdminTopBar />
+
+<main class="ml-64 min-h-screen">
+    <section class="pt-24 px-md pb-xl">
+
+        Page header
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-xl gap-md">
+            <div>
+                <h2 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface">
+                    Dashboard Overview
+                </h2>
+                <p class="font-body-md text-on-surface-variant">
+                    Welcome back, here's what's happening today.
+                </p>
+            </div>
+            <div class="flex items-center gap-sm bg-surface-container-lowest p-sm rounded-full
+                        shadow-sm border border-outline-variant">
+                <span class="material-symbols-outlined text-primary">calendar_today</span>
+                <span class="font-body-md font-medium px-md">@DateRange</span>
+                <span class="material-symbols-outlined text-outline">expand_more</span>
+            </div>
+        </div>
+
+        Stats grid
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md mb-xl">
+            <StatCard Icon="payments"
+                               IconBgClass="bg-primary/10 text-primary"
+                               Label="Total Revenue"
+                               Value="@(_metrics?.TotalRevenue is not null ? $"${_metrics.TotalRevenue:N0}" : "...")"
+                               Badge="+12.5%" />
+            <StatCard Icon="local_mall"
+                               IconBgClass="bg-secondary/10 text-secondary"
+                               Label="Total Orders"
+                               Value="@(_metrics?.TotalOrders.ToString() ?? "...")"
+                               Badge="+8%" />
+            <StatCard Icon="group"
+                               IconBgClass="bg-tertiary/10 text-tertiary"
+                               Label="Active Customers"
+                               Value="@(_metrics?.ActiveCustomers.ToString() ?? "...")"
+                               Badge="+5.4%" />
+            <StatCard Icon="analytics"
+                               IconBgClass="bg-surface-container-high text-on-surface"
+                               Label="Avg. Order Value"
+                               Value="@(_metrics?.AvgOrderValue is not null ? $"${_metrics.AvgOrderValue:F2}" : "...")"
+                               Badge="+2.1%" />
+        </div>
+
+        Bento grid
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-md">
+
+            Sales trend chart — 2/3 width
+            <div class="lg:col-span-2 glass-card p-lg rounded-xl shadow-sm">
+                <div class="flex items-center justify-between mb-lg">
+                    <h4 class="font-headline-md text-headline-md">Sales Trend</h4>
+                    <div class="flex gap-sm">
+                        <button class="font-label-sm px-md py-1 bg-primary text-white rounded-full">Revenue</button>
+                        <button class="font-label-sm px-md py-1 text-outline hover:bg-surface-variant rounded-full transition-colors">Orders</button>
+                    </div>
+                </div>
+                <div class="h-64 relative w-full overflow-hidden">
+                    <svg class="w-full h-full" viewBox="0 0 800 200">
+                        <defs>
+                            <linearGradient id="salesGradient" x1="0" x2="0" y1="0" y2="1">
+                                <stop offset="0%" stop-color="#2e5bff" stop-opacity="0.3" />
+                                <stop offset="100%" stop-color="#2e5bff" stop-opacity="0" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M0,150 Q100,140 150,80 T300,100 T450,40 T600,120 T800,50 L800,200 L0,200 Z"
+                              fill="url(#salesGradient)" />
+                        <path d="M0,150 Q100,140 150,80 T300,100 T450,40 T600,120 T800,50"
+                              fill="none" stroke="#2e5bff" stroke-linecap="round" stroke-width="4" />
+                        <circle cx="150" cy="80" fill="#2e5bff" r="6" />
+                        <circle cx="450" cy="40" fill="#2e5bff" r="6" />
+                        <circle cx="800" cy="50" fill="#2e5bff" r="6" />
+                    </svg>
+                    <div class="absolute bottom-0 w-full flex justify-between font-label-sm text-outline pt-md">
+                        <span>Mon</span><span>Tue</span><span>Wed</span>
+                        <span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                    </div>
+                </div>
+            </div>
+
+            Recent activity — 1/3 width
             <div class="glass-card p-lg rounded-xl shadow-sm flex flex-col">
                 <h4 class="font-headline-md text-headline-md mb-lg">Recent Activity</h4>
                 <div class="flex-1 space-y-md">
@@ -111,7 +594,7 @@
                 </button>
             </div>
 
-            @* Top selling products — full width *@
+            Top selling products — full width
             <div class="lg:col-span-3 glass-card p-lg rounded-xl shadow-sm overflow-hidden">
                 <div class="flex items-center justify-between mb-lg">
                     <h4 class="font-headline-md text-headline-md">Top Selling Products</h4>
@@ -213,7 +696,7 @@
         string Status);
 
     [Inject] private NavigationManager Nav { get; set; } = null!;
-}
+} *@
 
 
 

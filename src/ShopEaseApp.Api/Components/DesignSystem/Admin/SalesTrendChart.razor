@@ -1,0 +1,74 @@
+@* Organism: Sales trend SVG chart with Revenue/Orders toggle *@
+
+<div class="lg:col-span-2 glass-card p-lg rounded-xl shadow-sm">
+    <div class="flex items-center justify-between mb-lg">
+        <h4 class="font-headline-md text-headline-md">Sales Trend</h4>
+        <div class="flex gap-sm">
+            <button class="font-label-sm px-md py-1 rounded-full transition-colors
+                           @(_mode == "revenue" ? "bg-primary text-white" : "text-outline hover:bg-surface-variant")"
+                    @onclick='() => _mode = "revenue"'>Revenue</button>
+            <button class="font-label-sm px-md py-1 rounded-full transition-colors
+                           @(_mode == "orders" ? "bg-primary text-white" : "text-outline hover:bg-surface-variant")"
+                    @onclick='() => _mode = "orders"'>Orders</button>
+        </div>
+    </div>
+    <div class="h-64 relative w-full overflow-hidden">
+        @{
+            var points  = _mode == "revenue" ? RevenuePoints : OrderPoints;
+            var hasData = points.Any(v => v > 0);
+            var maxVal  = hasData ? points.Max() : 1;
+            double ScaleY(double val) => 190 - (val / maxVal * 170);
+            var pts  = points.Select((v, i) => (x: i * (800.0 / 6), y: ScaleY(v))).ToList();
+            var path = string.Join(" ", pts.Select((p, i) =>
+                i == 0 ? $"M{p.x:F0},{p.y:F0}" : $"L{p.x:F0},{p.y:F0}"));
+            var area = path + " L800,190 L0,190 Z";
+        }
+        <svg class="w-full h-full" viewBox="0 0 800 200">
+            <defs>
+                <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%"   stop-color="#2e5bff" stop-opacity="0.25" />
+                    <stop offset="100%" stop-color="#2e5bff" stop-opacity="0" />
+                </linearGradient>
+            </defs>
+            @if (hasData)
+            {
+                <path d="@area" fill="url(#chartGradient)" />
+                <path d="@path" fill="none" stroke="#2e5bff"
+                      stroke-linecap="round" stroke-linejoin="round" stroke-width="3" />
+                @foreach (var (p, i) in pts.Select((p, i) => (p, i)))
+                {
+                    if (points[i] > 0)
+                    {
+                        <circle cx="@p.x.ToString("F0")" cy="@p.y.ToString("F0")"
+                                r="5" fill="#2e5bff" />
+                    }
+                }
+            }
+            else
+            {
+                <path d="M0,190 L800,190" fill="none" stroke="#c4c5d9"
+                      stroke-width="2" stroke-dasharray="8,4" />
+                @((MarkupString)"""
+                <text x="400" y="100" text-anchor="middle"
+                    font-size="14" fill="#747688" font-family="Montserrat">
+                    No data for this period
+                </text>
+                """)
+            }
+        </svg>
+        <div class="absolute bottom-0 w-full flex justify-between font-label-sm text-outline pt-md">
+            @foreach (var label in DayLabels)
+            {
+                <span>@label</span>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public double[] RevenuePoints { get; set; } = new double[7];
+    [Parameter] public double[] OrderPoints   { get; set; } = new double[7];
+    [Parameter] public List<string> DayLabels { get; set; } = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+    private string _mode = "revenue";
+}

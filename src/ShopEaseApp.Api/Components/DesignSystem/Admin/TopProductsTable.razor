@@ -1,0 +1,94 @@
+@* Organism: Top selling products table *@
+@using ShopEaseApp.Api.Components.DesignSystem.Atoms
+
+<div class="lg:col-span-3 glass-card p-lg rounded-xl shadow-sm overflow-hidden">
+    <div class="flex items-center justify-between mb-lg">
+        <h4 class="font-headline-md text-headline-md">Top Selling Products</h4>
+        <div class="flex items-center gap-md">
+            <button class="flex items-center gap-xs px-md py-sm rounded-full border border-outline-variant
+                           text-on-surface-variant hover:bg-surface-container-high transition-all">
+                <span class="material-symbols-outlined">filter_list</span>
+                <span class="text-label-sm">Filter</span>
+            </button>
+            <button class="flex items-center gap-xs px-md py-sm rounded-full border border-outline-variant
+                           text-on-surface-variant hover:bg-surface-container-high transition-all">
+                <span class="material-symbols-outlined">download</span>
+                <span class="text-label-sm">Export</span>
+            </button>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="border-b border-outline-variant font-label-sm text-outline">
+                    <th class="py-md px-sm">RANK</th>
+                    <th class="py-md px-sm">PRODUCT NAME</th>
+                    <th class="py-md px-sm">CATEGORY</th>
+                    <th class="py-md px-sm">SALES</th>
+                    <th class="py-md px-sm">REVENUE</th>
+                    <th class="py-md px-sm">STATUS</th>
+                </tr>
+            </thead>
+            <tbody class="font-body-md text-on-surface">
+                @if (!Products.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="py-xl text-center text-outline font-body-md">
+                            No data available.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var (product, index) in Products.Select((p, i) => (p, i)))
+                    {
+                        <tr class="border-b border-outline-variant/30 hover:bg-surface-variant/20 transition-colors group">
+                            <td class="py-md px-sm font-bold text-primary">#@(index + 1)</td>
+                            <td class="py-md px-sm">
+                                <div class="flex items-center gap-md">
+                                    <div class="w-12 h-12 rounded-lg bg-surface-container-high overflow-hidden
+                                                flex-shrink-0 group-hover:scale-105 transition-transform">
+                                        @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                        {
+                                            <img src="@product.ImageUrl" alt="@product.Name"
+                                                 class="w-full h-full object-cover" />
+                                        }
+                                        else
+                                        {
+                                            <div class="w-full h-full flex items-center justify-center text-primary">
+                                                <span class="material-symbols-outlined">@product.Icon</span>
+                                            </div>
+                                        }
+                                    </div>
+                                    <span>@product.Name</span>
+                                </div>
+                            </td>
+                            <td class="py-md px-sm">
+                                <span class="bg-surface-container-high px-md py-1 rounded-full
+                                             text-on-surface-variant font-label-sm">@product.Category</span>
+                            </td>
+                            <td class="py-md px-sm font-medium">@product.Sales</td>
+                            <td class="py-md px-sm font-bold text-primary">$@product.Revenue.ToString("N0")</td>
+                            <td class="py-md px-sm">
+                                <StatusBadge Label="@product.Status" />
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<TopProductData> Products { get; set; } = [];
+
+    public record TopProductData(
+        string  Name,
+        string  Category,
+        string  Icon,
+        string? ImageUrl,
+        int     Sales,
+        decimal Revenue,
+        string  Status);
+}

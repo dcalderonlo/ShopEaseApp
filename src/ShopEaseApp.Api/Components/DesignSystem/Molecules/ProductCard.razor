@@ -1,0 +1,32 @@
+@* Molecule: Storefront product card *@
+
+<div class="group bg-surface rounded-xl border border-outline-variant/30 p-sm
+            hover:shadow-xl transition-shadow cursor-pointer"
+     @onclick="() => OnClick.InvokeAsync(ProductId)">
+    <div class="aspect-square rounded-lg bg-surface-container-low overflow-hidden mb-md
+                flex items-center justify-center p-md">
+        @if (!string.IsNullOrEmpty(ImageUrl))
+        {
+            <img src="@ImageUrl" alt="@Name"
+                 class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
+        }
+        else
+        {
+            <span class="material-symbols-outlined text-[64px] text-outline">image</span>
+        }
+    </div>
+    <div class="px-xs">
+        <p class="font-label-sm text-outline uppercase">@Category</p>
+        <h3 class="font-body-md font-bold text-on-surface mt-1 group-hover:text-primary transition-colors">@Name</h3>
+        <p class="text-primary font-headline-md text-[20px] mt-2">$@Price.ToString("F2")</p>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int ProductId { get; set; }
+    [Parameter] public string Name { get; set; } = "";
+    [Parameter] public string Category { get; set; } = "";
+    [Parameter] public string? ImageUrl { get; set; }
+    [Parameter] public decimal Price { get; set; }
+    [Parameter] public EventCallback<int> OnClick { get; set; }
+}

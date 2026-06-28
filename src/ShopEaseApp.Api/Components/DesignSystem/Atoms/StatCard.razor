@@ -6,8 +6,10 @@
 @if (!string.IsNullOrEmpty(Icon))
 {
     @* Dashboard layout: icon + growth badge on top, label + value below *@
-    <div class="bg-surface-container-lowest p-md rounded-lg shadow-soft
-                hover:shadow-md transition-all group @Class">
+    @* <div class="bg-surface-container-lowest p-md rounded-lg shadow-soft
+                hover:shadow-md transition-all group @Class"> *@
+    <div class="p-md rounded-lg shadow-soft hover:shadow-md transition-all group
+                @(string.IsNullOrEmpty(Class) ? "bg-surface-container-lowest" : Class)">
         <div class="flex items-center justify-between mb-md">
             <div class="p-sm rounded-full group-hover:scale-110 transition-transform @IconBgClass">
                 <span class="material-symbols-outlined"
@@ -25,8 +27,10 @@
 else
 {
     @* Simple layout: label top, value + badge/icon bottom *@
-    <div class="bg-surface-container-lowest p-md rounded-lg shadow-soft
-                flex flex-col justify-between @Class">
+    @* <div class="bg-surface-container-lowest p-md rounded-lg shadow-soft
+                flex flex-col justify-between @Class"> *@
+    <div class="p-md rounded-lg shadow-soft flex flex-col justify-between
+                @(string.IsNullOrEmpty(Class) ? "bg-surface-container-lowest" : Class)">
         <div class="flex items-center gap-md mb-md">
             @if (!string.IsNullOrEmpty(StatIcon))
             {
